@@ -25,7 +25,6 @@ Construct a new **pyTFE** client, then use the resource services on the client t
 ### (Recommended) Using explicit config
 
 ```python
-import os
 from pytfe import TFEClient, TFEConfig
 
 config = TFEConfig(
