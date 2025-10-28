@@ -109,7 +109,7 @@ profiles
 .DS_Store
 
 # Repo-specific
-bin/
+.bin/
 
 # Generated protoset files
 *.protoset
