@@ -110,7 +110,6 @@ from .policy_check import (
 from .policy_evaluation import (
     PolicyAttachable,
     PolicyEvaluation,
-    PolicyEvaluationList,
     PolicyEvaluationListOptions,
     PolicyEvaluationStatus,
     PolicyEvaluationStatusTimestamps,
@@ -559,7 +558,6 @@ __all__ = [
     # Policy Evaluation
     "PolicyAttachable",
     "PolicyEvaluation",
-    "PolicyEvaluationList",
     "PolicyEvaluationListOptions",
     "PolicyEvaluationStatus",
     "PolicyEvaluationStatusTimestamps",
