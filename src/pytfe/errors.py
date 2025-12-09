@@ -460,3 +460,11 @@ class InvalidPolicyEvaluationIDError(InvalidValues):
 
     def __init__(self, message: str = "invalid value for policy evaluation ID"):
         super().__init__(message)
+
+
+# Policy Set Outcome errors
+class InvalidPolicySetOutcomeIDError(InvalidValues):
+    """Raised when an invalid policy set outcome ID is provided."""
+
+    def __init__(self, message: str = "invalid value for policy set outcome ID"):
+        super().__init__(message)

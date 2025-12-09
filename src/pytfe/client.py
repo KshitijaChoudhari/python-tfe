@@ -15,7 +15,7 @@ from .resources.policy import Policies
 from .resources.policy_check import PolicyChecks
 from .resources.policy_evaluation import PolicyEvaluations
 from .resources.policy_set import PolicySets
-from .resources.policy_set_outcome import PolicySets as PolicySetOutcomes
+from .resources.policy_set_outcome import PolicySetOutcomes
 from .resources.policy_set_version import PolicySetVersions
 from .resources.projects import Projects
 from .resources.query_run import QueryRuns
