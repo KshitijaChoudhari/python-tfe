@@ -434,12 +434,10 @@ __all__ = [
     "RegistryProviderReadOptions",
     # Query runs
     "QueryRun",
-    "QueryRunActions",
     "QueryRunCancelOptions",
     "QueryRunCreateOptions",
     "QueryRunForceCancelOptions",
     "QueryRunIncludeOpt",
-    "QueryRunList",
     "QueryRunListOptions",
     "QueryRunReadOptions",
     "QueryRunSource",
