@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 class TaskResultStatus(str, Enum):
     """Task result status enum."""
-    
+
     PASSED = "passed"
     FAILED = "failed"
     PENDING = "pending"
@@ -28,30 +28,30 @@ class TaskResultStatus(str, Enum):
 
 class TaskEnforcementLevel(str, Enum):
     """Task enforcement level enum."""
-    
+
     ADVISORY = "advisory"
     MANDATORY = "mandatory"
 
 
 class TaskResultStatusTimestamps(BaseModel):
     """Timestamps recorded for a task result."""
-    
+
     errored_at: datetime | None = Field(default=None, alias="errored-at")
     running_at: datetime | None = Field(default=None, alias="running-at")
     canceled_at: datetime | None = Field(default=None, alias="canceled-at")
     failed_at: datetime | None = Field(default=None, alias="failed-at")
     passed_at: datetime | None = Field(default=None, alias="passed-at")
-    
+
     model_config = ConfigDict(populate_by_name=True)
 
 
 class TaskResult(BaseModel):
     """Represents a HCP Terraform or Terraform Enterprise run task result.
-    
+
     API Documentation:
         https://developer.hashicorp.com/terraform/cloud-docs/api-docs/task-results
     """
-    
+
     id: str
     status: TaskResultStatus
     message: str
@@ -67,8 +67,8 @@ class TaskResult(BaseModel):
         alias="workspace-task-enforcement-level"
     )
     agent_pool_id: str | None = Field(default=None, alias="agent-pool-id")
-    
+
     # Relationships
     task_stage: TaskStage | None = Field(default=None, alias="task-stage")
-    
+
     model_config = ConfigDict(populate_by_name=True)

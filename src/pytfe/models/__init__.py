@@ -258,23 +258,6 @@ from .run_task_request import (
     RunTaskRequest,
     RunTaskRequestCapabilities,
 )
-from .task_result import (
-    TaskEnforcementLevel,
-    TaskResult,
-    TaskResultStatus,
-    TaskResultStatusTimestamps,
-)
-from .task_stages import (
-    Actions,
-    Permissions,
-    Stage,
-    TaskStage,
-    TaskStageListOptions,
-    TaskStageOverrideOptions,
-    TaskStageReadOptions,
-    TaskStageStatus,
-    TaskStageStatusTimestamps,
-)
 from .run_trigger import (
     RunTrigger,
     RunTriggerCreateOptions,
@@ -292,6 +275,23 @@ from .ssh_key import (
     SSHKeyList,
     SSHKeyListOptions,
     SSHKeyUpdateOptions,
+)
+from .task_result import (
+    TaskEnforcementLevel,
+    TaskResult,
+    TaskResultStatus,
+    TaskResultStatusTimestamps,
+)
+from .task_stages import (
+    Actions,
+    Permissions,
+    Stage,
+    TaskStage,
+    TaskStageListOptions,
+    TaskStageOverrideOptions,
+    TaskStageReadOptions,
+    TaskStageStatus,
+    TaskStageStatusTimestamps,
 )
 
 # Variables
@@ -556,6 +556,19 @@ __all__ = [
     "RunTaskCreateOptions",
     "RunTaskUpdateOptions",
     "RunTaskReadOptions",
+    "RunTaskRequest",
+    "RunTaskRequestCapabilities",
+    "TaskResult",
+    "TaskResultStatus",
+    "TaskResultStatusTimestamps",
+    "Actions",
+    "Permissions",
+    "TaskStage",
+    "TaskStageListOptions",
+    "TaskStageOverrideOptions",
+    "TaskStageReadOptions",
+    "TaskStageStatus",
+    "TaskStageStatusTimestamps",
     # Run triggers
     "RunTrigger",
     "RunTriggerCreateOptions",

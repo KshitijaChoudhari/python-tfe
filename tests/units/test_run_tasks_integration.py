@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
-from pytfe.client import TFEClient
 from pytfe.errors import TFEError
-from pytfe.models.run_task_request import RunTaskRequest, RunTaskRequestCapabilities
+from pytfe.models.run_task_request import RunTaskRequest
 from pytfe.resources.run_tasks_integration import (
     RunTasksIntegration,
     TaskResultCallbackOptions,
@@ -43,14 +40,17 @@ class TestRunTaskRequest:
             "workspace_id": "ws-123",
             "workspace_name": "my-workspace",
         }
-        
+
         request = RunTaskRequest(**data)
-        
+
         assert request.access_token == "test-token-123"
         assert request.organization_name == "my-org"
         assert request.run_id == "run-123"
         assert request.stage == "post_plan"
-        assert request.task_result_callback_url == "https://app.terraform.io/api/v2/task-results/tr-123/callback"
+        assert (
+            request.task_result_callback_url
+            == "https://app.terraform.io/api/v2/task-results/tr-123/callback"
+        )
 
     def test_run_task_request_complete(self):
         """Test parsing complete run task request with all fields."""
@@ -81,9 +81,9 @@ class TestRunTaskRequest:
             "workspace_name": "test-workspace",
             "workspace_working_directory": "terraform/",
         }
-        
+
         request = RunTaskRequest(**data)
-        
+
         assert request.access_token == "test-token-456"
         assert request.capabilities is not None
         assert request.capabilities.outcomes is True
@@ -100,7 +100,7 @@ class TestTaskResultTag:
         """Test tag with level."""
         tag = TaskResultTag(label="High", level="error")
         data = tag.to_dict()
-        
+
         assert data["label"] == "High"
         assert data["level"] == "error"
 
@@ -108,7 +108,7 @@ class TestTaskResultTag:
         """Test tag without level."""
         tag = TaskResultTag(label="Passed")
         data = tag.to_dict()
-        
+
         assert data["label"] == "Passed"
         assert "level" not in data
 
@@ -122,7 +122,7 @@ class TestTaskResultOutcome:
             "Status": [TaskResultTag(label="Failed", level="error")],
             "Severity": [TaskResultTag(label="High", level="error")],
         }
-        
+
         outcome = TaskResultOutcome(
             outcome_id="ISSUE-123",
             description="Security issue found",
@@ -130,13 +130,16 @@ class TestTaskResultOutcome:
             url="https://example.com/issues/123",
             tags=tags,
         )
-        
+
         data = outcome.to_dict()
-        
+
         assert data["type"] == "task-result-outcomes"
         assert data["attributes"]["outcome-id"] == "ISSUE-123"
         assert data["attributes"]["description"] == "Security issue found"
-        assert data["attributes"]["body"] == "# Details\n\nSecurity vulnerability detected."
+        assert (
+            data["attributes"]["body"]
+            == "# Details\n\nSecurity vulnerability detected."
+        )
         assert data["attributes"]["url"] == "https://example.com/issues/123"
         assert "Status" in data["attributes"]["tags"]
 
@@ -144,7 +147,7 @@ class TestTaskResultOutcome:
         """Test minimal outcome."""
         outcome = TaskResultOutcome()
         data = outcome.to_dict()
-        
+
         assert data["type"] == "task-result-outcomes"
         assert "attributes" in data
 
@@ -159,10 +162,10 @@ class TestTaskResultCallbackOptions:
             message="All checks passed",
             url="https://example.com/results/123",
         )
-        
+
         options.validate()
         data = options.to_dict()
-        
+
         assert data["data"]["type"] == "task-results"
         assert data["data"]["attributes"]["status"] == "passed"
         assert data["data"]["attributes"]["message"] == "All checks passed"
@@ -174,15 +177,15 @@ class TestTaskResultCallbackOptions:
             outcome_id="ISSUE-1",
             description="Test issue",
         )
-        
+
         options = TaskResultCallbackOptions(
             status=TaskResultStatus.FAILED,
             message="1 issue found",
             outcomes=[outcome],
         )
-        
+
         data = options.to_dict()
-        
+
         assert "relationships" in data["data"]
         assert "outcomes" in data["data"]["relationships"]
         assert len(data["data"]["relationships"]["outcomes"]["data"]) == 1
@@ -190,15 +193,19 @@ class TestTaskResultCallbackOptions:
     def test_validate_invalid_status(self):
         """Test validation fails with invalid status."""
         options = TaskResultCallbackOptions(status="invalid")
-        
+
         with pytest.raises(TFEError) as exc_info:
             options.validate()
-        
+
         assert "Invalid task result status" in str(exc_info.value)
 
     def test_validate_valid_statuses(self):
         """Test validation passes with all valid statuses."""
-        for status in [TaskResultStatus.PASSED, TaskResultStatus.FAILED, TaskResultStatus.RUNNING]:
+        for status in [
+            TaskResultStatus.PASSED,
+            TaskResultStatus.FAILED,
+            TaskResultStatus.RUNNING,
+        ]:
             options = TaskResultCallbackOptions(status=status)
             options.validate()  # Should not raise
 
@@ -210,24 +217,27 @@ class TestRunTasksIntegration:
         """Test successful callback."""
         mock_transport = MagicMock()
         integration = RunTasksIntegration(mock_transport)
-        
+
         options = TaskResultCallbackOptions(
             status=TaskResultStatus.PASSED,
             message="All tests passed",
         )
-        
+
         integration.callback(
             callback_url="https://app.terraform.io/api/v2/task-results/tr-123/callback",
             access_token="test-token-123",
             options=options,
         )
-        
+
         # Verify request was made
         mock_transport.request.assert_called_once()
         call_args = mock_transport.request.call_args
-        
+
         assert call_args[0][0] == "PATCH"
-        assert call_args[0][1] == "https://app.terraform.io/api/v2/task-results/tr-123/callback"
+        assert (
+            call_args[0][1]
+            == "https://app.terraform.io/api/v2/task-results/tr-123/callback"
+        )
         assert "Authorization" in call_args[1]["headers"]
         assert call_args[1]["headers"]["Authorization"] == "Bearer test-token-123"
 
@@ -235,55 +245,55 @@ class TestRunTasksIntegration:
         """Test callback fails with empty URL."""
         mock_transport = MagicMock()
         integration = RunTasksIntegration(mock_transport)
-        
+
         options = TaskResultCallbackOptions(status=TaskResultStatus.PASSED)
-        
+
         with pytest.raises(TFEError) as exc_info:
             integration.callback(
                 callback_url="",
                 access_token="test-token",
                 options=options,
             )
-        
+
         assert "callback_url cannot be empty" in str(exc_info.value)
 
     def test_callback_empty_token(self):
         """Test callback fails with empty token."""
         mock_transport = MagicMock()
         integration = RunTasksIntegration(mock_transport)
-        
+
         options = TaskResultCallbackOptions(status=TaskResultStatus.PASSED)
-        
+
         with pytest.raises(TFEError) as exc_info:
             integration.callback(
                 callback_url="https://example.com/callback",
                 access_token="",
                 options=options,
             )
-        
+
         assert "access_token cannot be empty" in str(exc_info.value)
 
     def test_callback_invalid_status(self):
         """Test callback fails with invalid status."""
         mock_transport = MagicMock()
         integration = RunTasksIntegration(mock_transport)
-        
+
         options = TaskResultCallbackOptions(status="invalid-status")
-        
+
         with pytest.raises(TFEError) as exc_info:
             integration.callback(
                 callback_url="https://example.com/callback",
                 access_token="test-token",
                 options=options,
             )
-        
+
         assert "Invalid task result status" in str(exc_info.value)
 
     def test_callback_with_outcomes(self):
         """Test callback with detailed outcomes."""
         mock_transport = MagicMock()
         integration = RunTasksIntegration(mock_transport)
-        
+
         outcome = TaskResultOutcome(
             outcome_id="CHECK-1",
             description="Policy violation",
@@ -293,22 +303,22 @@ class TestRunTasksIntegration:
                 "Severity": [TaskResultTag(label="High", level="error")],
             },
         )
-        
+
         options = TaskResultCallbackOptions(
             status=TaskResultStatus.FAILED,
             message="Policy check failed",
             url="https://example.com/results",
             outcomes=[outcome],
         )
-        
+
         integration.callback(
             callback_url="https://app.terraform.io/api/v2/task-results/tr-123/callback",
             access_token="test-token-123",
             options=options,
         )
-        
+
         call_args = mock_transport.request.call_args
         body = call_args[1]["json_body"]
-        
+
         assert "relationships" in body["data"]
         assert "outcomes" in body["data"]["relationships"]
