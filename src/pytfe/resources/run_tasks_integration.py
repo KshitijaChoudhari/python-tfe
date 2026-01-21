@@ -9,26 +9,29 @@ from __future__ import annotations
 from typing import Any
 
 from ..errors import TFEError
+from ..models.task_result import TaskResultStatus
 from ._base import _Service
 
 
-class TaskResultStatus:
-    """Task result status enum."""
-    
-    PASSED = "passed"
-    FAILED = "failed"
-    RUNNING = "running"
-
-
 class TaskResultTag:
-    """Tag to enrich outcomes display in TFC/TFE."""
+    """Tag to enrich outcomes display in TFC/TFE.
+    
+    API Documentation:
+        https://developer.hashicorp.com/terraform/enterprise/api-docs/run-tasks/run-tasks-integration#severity-and-status-tags
+    """
     
     def __init__(self, label: str, level: str | None = None):
+        """Initialize a task result tag.
+        
+        Args:
+            label: The label for the tag
+            level: Optional severity level (error, warning, info)
+        """
         self.label = label
         self.level = level
     
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary."""
+        """Convert to dictionary for JSON serialization."""
         result = {"label": self.label}
         if self.level:
             result["level"] = self.level
@@ -50,6 +53,15 @@ class TaskResultOutcome:
         url: str | None = None,
         tags: dict[str, list[TaskResultTag]] | None = None,
     ):
+        """Initialize a task result outcome.
+        
+        Args:
+            outcome_id: Unique identifier for the outcome
+            description: Brief description of the outcome
+            body: Detailed body content (supports markdown)
+            url: URL to view more details
+            tags: Dictionary of tag categories to lists of tags
+        """
         self.outcome_id = outcome_id
         self.description = description
         self.body = body
@@ -57,7 +69,7 @@ class TaskResultOutcome:
         self.tags = tags or {}
     
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary for JSON serialization."""
+        """Convert to dictionary for JSON:API serialization."""
         result: dict[str, Any] = {"type": "task-result-outcomes", "attributes": {}}
         
         if self.outcome_id:
@@ -105,8 +117,16 @@ class TaskResultCallbackOptions:
         self.outcomes = outcomes or []
     
     def validate(self) -> None:
-        """Validate the callback options."""
-        valid_statuses = [TaskResultStatus.PASSED, TaskResultStatus.FAILED, TaskResultStatus.RUNNING]
+        """Validate the callback options.
+        
+        Only passed, failed, and running statuses are allowed for callbacks.
+        pending and errored are not valid callback statuses per TFC/TFE API.
+        """
+        valid_statuses = [
+            TaskResultStatus.PASSED.value,
+            TaskResultStatus.FAILED.value,
+            TaskResultStatus.RUNNING.value
+        ]
         if self.status not in valid_statuses:
             raise TFEError(
                 f"Invalid task result status: {self.status}. "

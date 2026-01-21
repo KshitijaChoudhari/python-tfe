@@ -253,12 +253,27 @@ from .run_task import (
     RunTaskListOptions,
     RunTaskReadOptions,
     RunTaskUpdateOptions,
-    Stage,
-    TaskEnforcementLevel,
 )
 from .run_task_request import (
     RunTaskRequest,
     RunTaskRequestCapabilities,
+)
+from .task_result import (
+    TaskEnforcementLevel,
+    TaskResult,
+    TaskResultStatus,
+    TaskResultStatusTimestamps,
+)
+from .task_stages import (
+    Actions,
+    Permissions,
+    Stage,
+    TaskStage,
+    TaskStageListOptions,
+    TaskStageOverrideOptions,
+    TaskStageReadOptions,
+    TaskStageStatus,
+    TaskStageStatusTimestamps,
 )
 from .run_trigger import (
     RunTrigger,

@@ -18,6 +18,8 @@ class RunTaskRequestCapabilities(BaseModel):
         default=False,
         description="Whether the run task server supports outcomes"
     )
+    
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class RunTaskRequest(BaseModel):

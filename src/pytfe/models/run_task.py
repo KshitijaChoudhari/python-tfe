@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 from ..models.common import Pagination
 from .agent import AgentPool
 from .organization import Organization
+from .task_result import TaskEnforcementLevel
+from .task_stages import Stage
 from .workspace_run_task import WorkspaceRunTask
 
 
@@ -35,18 +37,6 @@ class GlobalRunTaskOptions(BaseModel):
     enabled: bool | None = None
     stages: list[Stage] | None = Field(default_factory=list)
     enforcement_level: TaskEnforcementLevel | None = None
-
-
-class Stage(str, Enum):
-    PRE_PLAN = "pre-plan"
-    POST_PLAN = "post-plan"
-    PRE_APPLY = "pre-apply"
-    POST_APPLY = "post-apply"
-
-
-class TaskEnforcementLevel(str, Enum):
-    ADVISORY = "advisory"
-    MANDATORY = "mandatory"
 
 
 class RunTaskIncludeOptions(str, Enum):
