@@ -315,6 +315,23 @@ from .team import (
     Team,
     TeamPermissions,
 )
+from .task_result import (
+    TaskEnforcementLevel,
+    TaskResult,
+    TaskResultStatus,
+    TaskResultStatusTimestamps,
+)
+from .task_stages import (
+    Actions,
+    Permissions,
+    Stage,
+    TaskStage,
+    TaskStageListOptions,
+    TaskStageOverrideOptions,
+    TaskStageReadOptions,
+    TaskStageStatus,
+    TaskStageStatusTimestamps,
+)
 
 # Variables
 from .variable import (
