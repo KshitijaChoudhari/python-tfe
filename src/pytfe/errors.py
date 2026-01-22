@@ -462,6 +462,28 @@ class InvalidPolicyEvaluationIDError(InvalidValues):
         super().__init__(message)
 
 
+# Registry Provider Version errors
+class RequiredPrivateRegistryError(RequiredFieldMissing):
+    """Raised when a required private registry field is missing."""
+
+    def __init__(self, message: str = "only private registry is allowed"):
+        super().__init__(message)
+
+
+class InvalidVersionError(InvalidValues):
+    """Raised when an invalid version is provided."""
+
+    def __init__(self, message: str = "invalid value for version"):
+        super().__init__(message)
+
+
+class InvalidKeyIDError(InvalidValues):
+    """Raised when an invalid key ID is provided."""
+
+    def __init__(self, message: str = "invalid value for key-id"):
+        super().__init__(message)
+
+
 # Policy Set Outcome errors
 class InvalidPolicySetOutcomeIDError(InvalidValues):
     """Raised when an invalid policy set outcome ID is provided."""

@@ -146,16 +146,15 @@ from .project import (
 # ── Query Runs ────────────────────────────────────────────────────────────────
 from .query_run import (
     QueryRun,
-    QueryRunCancelOptions,
+    QueryRunActions,
     QueryRunCreateOptions,
-    QueryRunForceCancelOptions,
-    QueryRunList,
+    QueryRunIncludeOpt,
     QueryRunListOptions,
-    QueryRunLogs,
     QueryRunReadOptions,
-    QueryRunResults,
+    QueryRunSource,
     QueryRunStatus,
-    QueryRunType,
+    QueryRunStatusTimestamps,
+    QueryRunVariable,
 )
 
 # ── Registry Modules / Providers ──────────────────────────────────────────────
@@ -200,6 +199,13 @@ from .registry_provider import (
     RegistryProviderListOptions,
     RegistryProviderPermissions,
     RegistryProviderReadOptions,
+)
+from .registry_provider_version import (
+    RegistryProviderVersion,
+    RegistryProviderVersionCreateOptions,
+    RegistryProviderVersionID,
+    RegistryProviderVersionListOptions,
+    RegistryProviderVersionPermissions,
 )
 
 # ── Reserved Tag Keys ─────────────────────────────────────────────────────────
@@ -425,18 +431,23 @@ __all__ = [
     "RegistryProviderListOptions",
     "RegistryProviderPermissions",
     "RegistryProviderReadOptions",
+    # Registry provider versions
+    "RegistryProviderVersion",
+    "RegistryProviderVersionCreateOptions",
+    "RegistryProviderVersionID",
+    "RegistryProviderVersionListOptions",
+    "RegistryProviderVersionPermissions",
     # Query runs
     "QueryRun",
-    "QueryRunCancelOptions",
+    "QueryRunActions",
     "QueryRunCreateOptions",
-    "QueryRunForceCancelOptions",
-    "QueryRunList",
+    "QueryRunIncludeOpt",
     "QueryRunListOptions",
-    "QueryRunLogs",
     "QueryRunReadOptions",
-    "QueryRunResults",
+    "QueryRunSource",
     "QueryRunStatus",
-    "QueryRunType",
+    "QueryRunStatusTimestamps",
+    "QueryRunVariable",
     # Core (from old types.py, now split)
     "Entitlements",
     "ExecutionMode",
