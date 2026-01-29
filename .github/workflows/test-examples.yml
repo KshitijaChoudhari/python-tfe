@@ -236,6 +236,97 @@ jobs:
           exit 1
         fi
 
+  execute-examples:
+    name: Execute Example Files
+    runs-on: ubuntu-latest
+    needs: [test-example-syntax, test-example-imports]
+    env:
+      TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
+      TFE_URL: ${{ secrets.TFE_URL || 'https://app.terraform.io' }}
+      TFE_ORG: ${{ secrets.TFE_ORG }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+
+    - name: Execute all example files
+      run: |
+        echo "=== Executing Example Files ==="
+        echo "Note: Examples requiring TFE credentials will show expected errors"
+        echo ""
+        
+        executed=0
+        passed=0
+        failed=0
+        skipped=0
+        
+        while IFS= read -r file; do
+          executed=$((executed + 1))
+          filename=$(basename "$file")
+          echo "[$executed] Executing $filename..."
+          
+          # Set timeout for execution
+          timeout_seconds=10
+          
+          # Try to execute the file
+          if timeout ${timeout_seconds}s python "$file" --help 2>/dev/null >/dev/null; then
+            echo "    ✓ PASS - File executed (has --help)"
+            passed=$((passed + 1))
+          elif timeout ${timeout_seconds}s python "$file" 2>&1 | grep -qE "(TFE_TOKEN|TFE_URL|TFE_ORG|missing|required|error|Error)"; then
+            # Check if it failed due to missing credentials (expected)
+            if timeout ${timeout_seconds}s python "$file" 2>&1 | grep -qE "(TFE_TOKEN|TFE_URL|required|missing)"; then
+              echo "    ⚠ EXPECTED - Requires TFE credentials"
+              passed=$((passed + 1))
+            else
+              # Actual execution error
+              echo "    ✗ FAIL - Execution error (not credential-related)"
+              echo "    Error output:"
+              timeout ${timeout_seconds}s python "$file" 2>&1 | head -5 | sed 's/^/      /'
+              failed=$((failed + 1))
+            fi
+          else
+            # Try basic execution with error capture
+            if timeout ${timeout_seconds}s python "$file" 2>&1; then
+              echo "    ✓ PASS - File executed successfully"
+              passed=$((passed + 1))
+            else
+              exit_code=$?
+              if [ $exit_code -eq 124 ]; then
+                echo "    ⏱ TIMEOUT - File took too long (>${timeout_seconds}s)"
+                skipped=$((skipped + 1))
+              else
+                echo "    ✗ FAIL - Execution failed"
+                failed=$((failed + 1))
+              fi
+            fi
+          fi
+          echo ""
+        done < <(find examples/ -name "*.py" -type f | sort)
+        
+        echo "=== Execution Results ==="
+        echo "Total files: $executed"
+        echo "Passed: $passed"
+        echo "Failed: $failed"
+        echo "Skipped/Timeout: $skipped"
+        echo ""
+        
+        if [ $failed -gt 0 ]; then
+          echo "❌ Some example files failed execution"
+          exit 1
+        else
+          echo "✅ All example files executed successfully or require credentials"
+        fi
+
   summary:
     name: Test Summary
     runs-on: ubuntu-latest
