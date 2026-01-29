@@ -43,9 +43,9 @@ jobs:
           total=$((total + 1))
           echo -n "Testing $file... "
           if python -m py_compile "$file" 2>/dev/null; then
-            echo "✓ PASS"
+            echo "PASS"
           else
-            echo "✗ FAIL"
+            echo "FAIL"
             python -m py_compile "$file"
             failed=$((failed + 1))
           fi
@@ -58,10 +58,10 @@ jobs:
         echo "Failed: $failed"
         
         if [ $failed -gt 0 ]; then
-          echo "❌ Some example files have syntax errors"
+          echo "Some example files have syntax errors"
           exit 1
         else
-          echo "✅ All example files have valid syntax"
+          echo "All example files have valid syntax"
         fi
 
   test-example-imports:
@@ -141,12 +141,12 @@ jobs:
           
           if [ $exit_code -eq 0 ]; then
             if [[ "$result" == "PASS" ]]; then
-              echo "✓ PASS (imports pytfe)"
+              echo "PASS (imports pytfe)"
             else
-              echo "⚠ WARN (no pytfe import)"
+              echo "WARN (no pytfe import)"
             fi
           else
-            echo "✗ FAIL: $result"
+            echo "FAIL: $result"
             failed=$((failed + 1))
           fi
         done < <(find examples/ -name "*.py" -type f | sort)
@@ -158,10 +158,10 @@ jobs:
         echo "Failed: $failed"
         
         if [ $failed -gt 0 ]; then
-          echo "❌ Some example files have import issues"
+          echo "Some example files have import issues"
           exit 1
         else
-          echo "✅ All example files passed import tests"
+          echo "All example files passed import tests"
         fi
 
   test-example-linting:
@@ -225,7 +225,7 @@ jobs:
           if python -m py_compile "$file" 2>/dev/null; then
             :
           else
-            echo "✗ FAIL: $file"
+            echo "FAIL: $file"
             failed=$((failed + 1))
           fi
         done < <(find examples/ -name "*.py" -type f)
@@ -280,16 +280,16 @@ jobs:
           
           # Try to execute the file
           if timeout ${timeout_seconds}s python "$file" --help 2>/dev/null >/dev/null; then
-            echo "    ✓ PASS - File executed (has --help)"
+            echo "    PASS - File executed (has --help)"
             passed=$((passed + 1))
           elif timeout ${timeout_seconds}s python "$file" 2>&1 | grep -qE "(TFE_TOKEN|TFE_URL|TFE_ORG|missing|required|error|Error)"; then
             # Check if it failed due to missing credentials (expected)
             if timeout ${timeout_seconds}s python "$file" 2>&1 | grep -qE "(TFE_TOKEN|TFE_URL|required|missing)"; then
-              echo "    ⚠ EXPECTED - Requires TFE credentials"
+              echo "    EXPECTED - Requires TFE credentials"
               passed=$((passed + 1))
             else
               # Actual execution error
-              echo "    ✗ FAIL - Execution error (not credential-related)"
+              echo "    FAIL - Execution error (not credential-related)"
               echo "    Error output:"
               timeout ${timeout_seconds}s python "$file" 2>&1 | head -5 | sed 's/^/      /'
               failed=$((failed + 1))
@@ -297,15 +297,15 @@ jobs:
           else
             # Try basic execution with error capture
             if timeout ${timeout_seconds}s python "$file" 2>&1; then
-              echo "    ✓ PASS - File executed successfully"
+              echo "    PASS - File executed successfully"
               passed=$((passed + 1))
             else
               exit_code=$?
               if [ $exit_code -eq 124 ]; then
-                echo "    ⏱ TIMEOUT - File took too long (>${timeout_seconds}s)"
+                echo "    TIMEOUT - File took too long (>${timeout_seconds}s)"
                 skipped=$((skipped + 1))
               else
-                echo "    ✗ FAIL - Execution failed"
+                echo "    FAIL - Execution failed"
                 failed=$((failed + 1))
               fi
             fi
@@ -321,10 +321,10 @@ jobs:
         echo ""
         
         if [ $failed -gt 0 ]; then
-          echo "❌ Some example files failed execution"
+          echo "Some example files failed execution"
           exit 1
         else
-          echo "✅ All example files executed successfully or require credentials"
+          echo "All example files executed successfully or require credentials"
         fi
 
   summary:
@@ -337,18 +337,18 @@ jobs:
     - name: Check results
       run: |
         echo "=== Example Testing Summary ==="
-        echo "✅ Syntax testing: ${{ needs.test-example-syntax.result }}"
-        echo "✅ Import testing: ${{ needs.test-example-imports.result }}"
-        echo "✅ Linting: ${{ needs.test-example-linting.result }}"
-        echo "✅ Multi-Python testing: ${{ needs.test-all-examples-matrix.result }}"
+        echo "Syntax testing: ${{ needs.test-example-syntax.result }}"
+        echo "Import testing: ${{ needs.test-example-imports.result }}"
+        echo "Linting: ${{ needs.test-example-linting.result }}"
+        echo "Multi-Python testing: ${{ needs.test-all-examples-matrix.result }}"
         
         if [ "${{ needs.test-example-syntax.result }}" != "success" ] || \
            [ "${{ needs.test-example-imports.result }}" != "success" ] || \
            [ "${{ needs.test-all-examples-matrix.result }}" != "success" ]; then
           echo ""
-          echo "❌ Some tests failed!"
+          echo "ERROR: Some tests failed!"
           exit 1
         else
           echo ""
-          echo "🎉 All example file tests passed!"
+          echo " All example file tests passed!"
         fi
