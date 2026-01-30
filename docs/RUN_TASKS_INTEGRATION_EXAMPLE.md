@@ -90,13 +90,13 @@ client.run_tasks_integration.callback(
 
 ### Step 7: TFC/TFE Receives and Displays Results
 In the TFC/TFE UI, users see:
-- ✅ **Run Task Status**: Passed or Failed
-- 📝 **Message**: Your custom message
-- 📊 **Outcomes**: Detailed results with tags
-- 🔗 **Link**: To your detailed results page
+- **Run Task Status**: Passed or Failed
+- **Message**: Your custom message
+- **Outcomes**: Detailed results with tags
+- **Link**: To your detailed results page
 
-If mandatory and failed → Run is blocked ⛔
-If advisory and failed → Run continues with warning ⚠️
+If mandatory and failed → Run is blocked
+If advisory and failed → Run continues with warning
 
 ---
 
@@ -149,31 +149,31 @@ if not meets_compliance_standards(config):
 
 The example file shows you how to:
 
-✅ **Receive webhooks** from TFC/TFE using a simple HTTP server
-✅ **Parse `RunTaskRequest`** - the webhook payload from TFC/TFE
-✅ **Access run information** - workspace, organization, stage, run ID
-✅ **Add custom validation logic** - where you insert your checks
-✅ **Create detailed outcomes** - with descriptions, tags, and links
-✅ **Send results back** - using the `callback()` method
-✅ **Handle errors gracefully** - proper error handling and responses
+- **Receive webhooks** from TFC/TFE using a simple HTTP server
+- **Parse `RunTaskRequest`** - the webhook payload from TFC/TFE
+- **Access run information** - workspace, organization, stage, run ID
+- **Add custom validation logic** - where you insert your checks
+- **Create detailed outcomes** - with descriptions, tags, and links
+- **Send results back** - using the `callback()` method
+- **Handle errors gracefully** - proper error handling and responses
 
 ---
 
 ## Why This Example is Important
 
 ### Without Run Tasks Integration:
-- ❌ Manual code reviews for every change
-- ❌ Inconsistent policy enforcement
-- ❌ Security issues discovered after deployment
-- ❌ Cost overruns without warnings
+- Manual code reviews for every change
+- Inconsistent policy enforcement
+- Security issues discovered after deployment
+- Cost overruns without warnings
 
 ### With Run Tasks Integration:
-- ✅ Automated validation before apply
-- ✅ Consistent policy enforcement
-- ✅ Security issues caught early
-- ✅ Cost controls built into workflow
-- ✅ Detailed audit trail
-- ✅ Custom business logic enforcement
+- Automated validation before apply
+- Consistent policy enforcement
+- Security issues caught early
+- Cost controls built into workflow
+- Detailed audit trail
+- Custom business logic enforcement
 
 ---
 
@@ -250,22 +250,22 @@ Sends results back to TFC/TFE:
 
 ## Testing Strategy
 
-### Level 1: Unit Tests ✅
+### Level 1: Unit Tests
 ```bash
 pytest tests/units/test_run_tasks_integration.py
 ```
 Tests parsing and validation logic.
 
-### Level 2: Local Integration ✅
+### Level 2: Local Integration
 ```bash
 python test_run_tasks_local.py
 ```
 Simulates complete flow with mock TFC/TFE server.
 
-### Level 3: Cloud Deployment ✅
+### Level 3: Cloud Deployment
 Deploy to EC2/cloud and test with real webhooks.
 
-### Level 4: Real HCP Terraform ✅
+### Level 4: Real HCP Terraform
 Configure in actual TFC/TFE and trigger real runs.
 
 ---
@@ -286,11 +286,11 @@ Configure in actual TFC/TFE and trigger real runs.
 
 ## Next Steps
 
-1. ✅ Review the example code
-2. ✅ Test locally with `test_run_tasks_local.py`
-3. ✅ Customize validation logic for your needs
-4. ✅ Deploy to cloud server
-5. ✅ Configure in TFC/TFE
-6. ✅ Monitor and iterate
+1. Review the example code
+2. Test locally with `test_run_tasks_local.py`
+3. Customize validation logic for your needs
+4. Deploy to cloud server
+5. Configure in TFC/TFE
+6. Monitor and iterate
 
 **The example gives you everything you need to build your own run tasks integration!**
