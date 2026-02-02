@@ -216,6 +216,22 @@ from .reserved_tag_key import (
     ReservedTagKeyUpdateOptions,
 )
 
+
+# ── State Versions ───────────────────────────────────────────────────────────────
+from .state_version import (
+    StateVersion,
+    StateVersionCreateOptions,
+    StateVersionCurrentOptions,
+    StateVersionReadOptions,
+    StateVersionListOptions,
+    StateVersionIncludeOpt,
+)
+from .state_version_output import (
+    StateVersionOutput,
+    StateVersionOutputsListOptions,
+    StateVersionOutputsList,
+)
+
 # Runs
 from .run import (
     OrganizationRunList,
@@ -365,6 +381,16 @@ __all__ = [
     "ReservedTagKeyCreateOptions",
     "ReservedTagKeyListOptions",
     "ReservedTagKeyUpdateOptions",
+    # State versions
+    "StateVersion",
+    "StateVersionCreateOptions",
+    "StateVersionCurrentOptions",
+    "StateVersionReadOptions",
+    "StateVersionListOptions",
+    "StateVersionIncludeOpt",
+    "StateVersionOutput",
+    "StateVersionOutputsListOptions",
+    "StateVersionOutputsList",
     # Agent & pools
     "Agent",
     "AgentPool",
