@@ -386,28 +386,26 @@ jobs:
           echo "Creating test workspace for dependent examples..."
           echo "=================================================="
           
-          # Create a unique workspace name
-          WORKSPACE_NAME="ci-test-$(date +%s)"
-          echo "Workspace name: $WORKSPACE_NAME"
-          
           # Create workspace and capture output
           WORKSPACE_OUTPUT=$(python examples/workspace.py \
             --org "$TFE_ORG" \
             --token "$TFE_TOKEN" \
-            --name "$WORKSPACE_NAME" \
             --create 2>&1)
           
           echo "$WORKSPACE_OUTPUT"
           
-          # Extract workspace ID
-          WORKSPACE_ID=$(echo "$WORKSPACE_OUTPUT" | grep -oP 'Workspace ID: \K[^\s]+' || echo "")
+          # Extract workspace name and ID from output
+          WORKSPACE_NAME=$(echo "$WORKSPACE_OUTPUT" | grep -oP 'Name: \K[^\s]+' | head -1 || echo "")
+          WORKSPACE_ID=$(echo "$WORKSPACE_OUTPUT" | grep -oP 'ID: \K[^\s]+' | head -1 || echo "")
           
-          if [ -z "$WORKSPACE_ID" ]; then
-            echo "❌ Failed to create workspace or extract workspace ID"
+          if [ -z "$WORKSPACE_ID" ] || [ -z "$WORKSPACE_NAME" ]; then
+            echo "❌ Failed to create workspace or extract workspace details"
+            echo "Workspace Name: $WORKSPACE_NAME"
+            echo "Workspace ID: $WORKSPACE_ID"
             exit 1
           fi
           
-          echo "✅ Created workspace: $WORKSPACE_ID"
+          echo "✅ Created workspace: $WORKSPACE_NAME ($WORKSPACE_ID)"
           
           echo ""
           echo "=================================================="
@@ -516,7 +514,7 @@ jobs:
           python examples/workspace.py \
             --org "$TFE_ORG" \
             --token "$TFE_TOKEN" \
-            --name "$WORKSPACE_NAME" \
+            --workspace "$WORKSPACE_NAME" \
             --delete 2>&1 || true
           
           echo "✅ Integration chain completed"
