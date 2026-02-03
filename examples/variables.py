@@ -22,7 +22,7 @@ def main():
     client = TFEClient(TFEConfig.from_env())
 
     # Replace this with your actual workspace ID
-    workspace_id = "ws-example123456789"  # Get this from your TFE workspace
+    workspace_id = os.getenv("TFE_WORKSPACE_ID", "ws-example123456789")  # Use TFE_WORKSPACE_ID env var
 
     print(f"Testing all variable operations in workspace: {workspace_id}")
     print("=" * 60)

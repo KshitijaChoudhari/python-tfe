@@ -35,7 +35,7 @@ def get_client_and_workspace():
     """Initialize client and get workspace ID."""
     client = TFEClient(TFEConfig.from_env())
     organization = os.getenv("TFE_ORG", "aayush-test")
-    workspace_name = "query-test"  # Default workspace for testing
+    workspace_name = os.getenv("TFE_WORKSPACE", "query-test")  # Use TFE_WORKSPACE env var
 
     # Get workspace
     workspace = client.workspaces.read(workspace_name, organization=organization)

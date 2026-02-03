@@ -268,6 +268,7 @@ jobs:
       env:
         TFE_TOKEN: ${{ secrets.HCP_TF_TOKEN }}
         TFE_ORG: ${{ secrets.HCP_TF_ORG }}
+        TFE_ORGANIZATION: ${{ secrets.HCP_TF_ORG }}
       run: |
         echo "=== Executing Example Files with Real HCP Credentials ==="
         echo "Organization: $TFE_ORG"
