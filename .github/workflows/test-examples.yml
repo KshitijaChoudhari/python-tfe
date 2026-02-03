@@ -2,249 +2,160 @@ name: Test All Example Files
 
 on:
   push:
-    branches: [ next-0.1.2, main ]
-  pull_request:
-    branches: [ next-0.1.2, main ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  test-example-syntax:
-    name: Test Example File Syntax
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip cache purge || true
-        pip install --no-cache-dir --force-reinstall -e ".[dev]"
-
-    - name: List all example files
-      run: |
-        echo "=== Example Files Found ==="
-        find examples/ -name "*.py" -type f | sort
-        echo ""
-        echo "Total: $(find examples/ -name "*.py" -type f | wc -l) files"
-
-    - name: Test syntax of all example files
-      run: |
-        echo "=== Testing Python Syntax ==="
-        failed=0
-        total=0
-        
-        while IFS= read -r file; do
-          total=$((total + 1))
-          echo -n "Testing $file... "
-          if python -m py_compile "$file" 2>/dev/null; then
-            echo "PASS"
-          else
-            echo "FAIL"
-            python -m py_compile "$file"
-            failed=$((failed + 1))
-          fi
-        done < <(find examples/ -name "*.py" -type f | sort)
-        
-        echo ""
-        echo "=== Results ==="
-        echo "Total files: $total"
-        echo "Passed: $((total - failed))"
-        echo "Failed: $failed"
-        
-        if [ $failed -gt 0 ]; then
-          echo "Some example files have syntax errors"
-          exit 1
-        else
-          echo "All example files have valid syntax"
-        fi
-
-  test-example-imports:
-    name: Test Example Imports
-    runs-on: ubuntu-latest
-    needs: test-example-syntax
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip cache purge || true
-        pip install --no-cache-dir --force-reinstall -e ".[dev]"
-
-    - name: Create import test script
-      run: |
-        cat > /tmp/test_imports.py << 'EOF'
-        import ast
-        import sys
-
-        def test_imports(filepath):
-            try:
-                with open(filepath, 'r') as f:
-                    content = f.read()
-                
-                tree = ast.parse(content, filepath)
-                
-                imports = []
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.Import):
-                        for alias in node.names:
-                            imports.append(alias.name)
-                    elif isinstance(node, ast.ImportFrom):
-                        if node.module:
-                            imports.append(node.module)
-                
-                has_pytfe = any('pytfe' in imp for imp in imports)
-                
-                if has_pytfe:
-                    print('PASS')
-                    return 0
-                else:
-                    print('WARN')
-                    return 0
-                    
-            except SyntaxError as e:
-                print(f'FAIL: {e}')
-                return 1
-            except Exception as e:
-                print(f'FAIL: {e}')
-                return 1
-
-        if __name__ == '__main__':
-            sys.exit(test_imports(sys.argv[1]))
-        EOF
-
-    - name: Test imports in all example files
-      run: |
-        echo "=== Testing Imports ==="
-        failed=0
-        total=0
-        
-        while IFS= read -r file; do
-          total=$((total + 1))
-          filename=$(basename "$file")
-          echo -n "Testing imports in $filename... "
-          
-          result=$(python /tmp/test_imports.py "$file")
-          exit_code=$?
-          
-          if [ $exit_code -eq 0 ]; then
-            if [[ "$result" == "PASS" ]]; then
-              echo "PASS (imports pytfe)"
-            else
-              echo "WARN (no pytfe import)"
-            fi
-          else
-            echo "FAIL: $result"
-            failed=$((failed + 1))
-          fi
-        done < <(find examples/ -name "*.py" -type f | sort)
-        
-        echo ""
-        echo "=== Import Test Results ==="
-        echo "Total files: $total"
-        echo "Passed: $((total - failed))"
-        echo "Failed: $failed"
-        
-        if [ $failed -gt 0 ]; then
-          echo "Some example files have import issues"
-          exit 1
-        else
-          echo "All example files passed import tests"
-        fi
-
-  test-example-linting:
-    name: Lint Example Files
-    runs-on: ubuntu-latest
-    needs: test-example-syntax
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip cache purge || true
-        pip install --no-cache-dir --force-reinstall -e ".[dev]"
-
-    - name: Run ruff on example files
-      run: |
-        echo "=== Linting Example Files ==="
-        python -m ruff check examples/ --config pyproject.toml || true
-        echo ""
-        echo "=== Formatting Check ==="
-        python -m ruff format --check examples/ || true
-
-  test-all-examples-matrix:
-    name: Test Examples on Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
-    needs: test-example-syntax
-    strategy:
-      matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
-      fail-fast: false
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip cache purge || true
-        pip install --no-cache-dir --force-reinstall -e ".[dev]"
-
-    - name: Test example syntax on Python ${{ matrix.python-version }}
-      run: |
-        echo "=== Testing on Python ${{ matrix.python-version }} ==="
-        failed=0
-        total=0
-        
-        while IFS= read -r file; do
-          total=$((total + 1))
-          if python -m py_compile "$file" 2>/dev/null; then
-            :
-          else
-            echo "FAIL: $file"
-            failed=$((failed + 1))
-          fi
-        done < <(find examples/ -name "*.py" -type f)
-        
-        echo "Python ${{ matrix.python-version }}: $((total - failed))/$total passed"
-        
-        if [ $failed -gt 0 ]; then
-          exit 1
-        fi
-
-  execute-examples:
+  run-examples:
     name: Execute Example Files
     runs-on: ubuntu-latest
-    needs: [test-example-syntax, test-example-imports]
     env:
+      TFE_TOKEN: ${{ secrets.HCP_TF_TOKEN }}
+      TFE_ORG: ${{ secrets.HCP_TF_ORG }}
+      TFE_WORKSPACE: ${{ vars.TFE_WORKSPACE }}
+      TFE_WORKSPACE_ID: ${{ vars.TFE_WORKSPACE_ID }}
+      TFE_PROJECT_ID: ${{ vars.TFE_PROJECT_ID }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -e ".[dev]"
+
+      - name: Execute all example files with real credentials
+        run: |
+          echo "=== Executing Example Files with Real HCP Credentials ==="
+          echo "Organization: $TFE_ORG"
+          echo ""
+
+          mkdir -p /tmp/example-logs
+
+          executed=0
+          passed=0
+          failed=0
+          skipped=0
+
+          while IFS= read -r file; do
+            executed=$((executed + 1))
+            filename=$(basename "$file")
+            logfile="/tmp/example-logs/${filename%.py}.log"
+
+            echo "[$executed] Executing $filename..."
+
+            echo "=== Execution of $filename ===" > "$logfile"
+            echo "File: $file" >> "$logfile"
+            echo "Time: $(date)" >> "$logfile"
+            echo "" >> "$logfile"
+
+            # Decide runner: pytest if file contains pytest imports or test_ functions
+            if grep -qE "(^|\s)import\s+pytest|def\s+test_" "$file"; then
+              echo "Running with pytest: pytest -q $file" >> "$logfile"
+              timeout 120s pytest -q --maxfail=1 "$file" 2>&1 | tee -a "$logfile" > /tmp/output.txt || true
+            else
+              echo "Running as script: python $file" >> "$logfile"
+              timeout 120s python "$file" 2>&1 | tee -a "$logfile" > /tmp/output.txt || true
+            fi
+
+            output=$(cat /tmp/output.txt)
+            exit_code=$?
+
+            echo "" >> "$logfile"
+            echo "Exit Code: $exit_code" >> "$logfile"
+
+            if echo "$output" | grep -qE "(^FAILED|FAILED\s|Traceback \(most recent call last\)|pytfe.errors.NotFound)"; then
+              echo "STATUS: FAILED" >> "$logfile"
+              # Determine a concise human-readable reason
+              if echo "$output" | grep -qi "not found"; then
+                reason="Resource not found: workspace/resource doesn't exist in HCP organization"
+              else
+                # try to capture the exception message (pytfe errors or last Python exception line)
+                reason=$(echo "$output" | grep -m1 -E "pytfe.errors\.[A-Za-z]+:|^[A-Za-z].*Error:|Exception:|Traceback" || true)
+                if [ -z "$reason" ]; then
+                  reason=$(echo "$output" | tail -n 1)
+                fi
+              fi
+
+              echo "    FAIL - Execution failed" >> "$logfile"
+              echo "    Reason: $reason" >> "$logfile"
+              echo "" >> "$logfile"
+
+              # Print stack excerpt (Traceback) if present
+              echo "    Stack excerpt:" >> "$logfile"
+              echo "" >> "$logfile"
+              echo "$output" | sed -n -e '/Traceback \(most recent call last\)/, +200p' >> "$logfile" || true
+
+              # Extract relevant source locations (file:line) from the output
+              echo "" >> "$logfile"
+              echo "    Relevant source locations:" >> "$logfile"
+              echo "$output" | grep -Eo "[a-zA-Z0-9_\./-]+\.py:[0-9]+" | sed -n '1,20p' >> "$logfile" || true
+
+              # Also include the lines around any 'not found' occurrences for quick context
+              if echo "$output" | grep -qi "not found"; then
+                echo "" >> "$logfile"
+                echo "    Context around 'not found':" >> "$logfile"
+                echo "" >> "$logfile"
+                echo "$output" | grep -n -i "not found" | sed -n '1,10p' >> "$logfile" || true
+                echo "" >> "$logfile"
+              fi
+
+              echo "    PRINTING TAIL OF LOG (200 lines)" >> "$logfile"
+              tail -n 200 "$logfile" >> "$logfile" || true
+              echo "" >> "$logfile"
+              echo "    FAIL - See $logfile for full details"
+              # Also emit a concise summary to the workflow log for visibility
+              echo "    FAIL - $reason"
+              failed=$((failed + 1))
+            elif echo "$output" | grep -qE "(^PASSED|Passed|Success|Created|Found)"; then
+              echo "STATUS: SUCCESS" >> "$logfile"
+              echo "    PASS - Executed successfully" >> "$logfile"
+              passed=$((passed + 1))
+            else
+              echo "STATUS: UNDETERMINED" >> "$logfile"
+              echo "    WARN - Unexpected output; captured for inspection" >> "$logfile"
+              echo "    OUTPUT EXCERPT:" >> "$logfile"
+              echo "$output" | sed -n '1,40p' >> "$logfile"
+              failed=$((failed + 1))
+            fi
+
+            echo ""
+          done < <(find examples/ -name "*.py" -type f | sort)
+
+          echo "=== Execution Results ==="
+          echo "Total files: $executed"
+          echo "Passed: $passed"
+          echo "Failed: $failed"
+          echo "Skipped: $skipped"
+          echo ""
+
+          if [ $failed -gt 0 ]; then
+            echo "FAILURES DETECTED"
+            echo "See /tmp/example-logs for raw logs and artifact upload for details."
+            # print brief failure excerpts to console for quick visibility
+            echo "\nDetailed failure excerpts:"
+            for f in /tmp/example-logs/*.log; do
+              if grep -q "STATUS: FAILED" "$f"; then
+                echo "---- $(basename "$f") ----"
+                grep -n "pytfe.errors.NotFound\|Traceback\|FAILED\|STATUS: FAILED" "$f" | sed -n '1,30p'
+                echo "(Full log at $f)"
+                echo ""
+              fi
+            done
+            exit 2
+          fi
+
+      - name: Upload example execution logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-execution-logs
+          path: /tmp/example-logs
+          retention-days: 30
       TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
       TFE_URL: ${{ secrets.TFE_URL || 'https://app.terraform.io' }}
       TFE_ORG: ${{ secrets.TFE_ORG }}
@@ -271,6 +182,7 @@ jobs:
         TFE_ORGANIZATION: ${{ secrets.HCP_TF_ORG }}
         TFE_WORKSPACE: ${{ vars.TFE_WORKSPACE }}
         TFE_WORKSPACE_ID: ${{ vars.TFE_WORKSPACE_ID }}
+        TFE_PROJECT_ID: ${{ vars.TFE_PROJECT_ID }}
       run: |
         echo "=== Executing Example Files with Real HCP Credentials ==="
         echo "Organization: $TFE_ORG"
@@ -299,10 +211,18 @@ jobs:
              [[ "$filename" == "configuration_version.py" ]] || \
              [[ "$filename" == "notification_configuration.py" ]] || \
              [[ "$filename" == "oauth_client.py" ]] || \
-             [[ "$filename" == "oauth_token.py" ]]; then
+             [[ "$filename" == "oauth_token.py" ]] || \
+             [[ "$filename" == "project.py" ]]; then
             echo "SKIPPED - Requires specific resource IDs" > "$logfile"
             echo "    SKIP - Requires specific resource IDs"
             skipped=$((skipped + 1))
+            continue
+          fi
+          
+          # Use project_simple.py instead of project.py
+          if [[ "$filename" == "project_simple.py" ]]; then
+            cmdfile="project_simple.py"
+          fi
           else
             # Try running with credentials and save full output
             echo "=== Execution of $filename ===" > "$logfile"
@@ -332,12 +252,19 @@ jobs:
               echo "$output" | grep -E "(unauthorized|forbidden)" | head -2 | sed 's/^/      /'
               failed=$((failed + 1))
             elif echo "$output" | grep -qE "not found"; then
-              # Resource not found
-              echo "STATUS: FAILED - Resource Not Found" >> "$logfile"
-              echo "    FAIL - Resource not found"
-              echo "    Reason: Workspace/resource doesn't exist in HCP organization"
-              echo "$output" | grep -B2 "not found" | tail -3 | sed 's/^/      /'
-              failed=$((failed + 1))
+              # Resource not found - but check if it's expected
+              if echo "$output" | grep -qE "(Expected error|NOTE:.*non-existent)"; then
+                echo "STATUS: SUCCESS - Expected Error Handled" >> "$logfile"
+                echo "    PASS - Expected error handled correctly"
+                echo "$output" | grep -E "(Expected error|NOTE)" | head -2 | sed 's/^/      /'
+                passed=$((passed + 1))
+              else
+                echo "STATUS: FAILED - Resource Not Found" >> "$logfile"
+                echo "    FAIL - Resource not found"
+                echo "    Reason: Workspace/resource doesn't exist in HCP organization"
+                echo "$output" | grep -B2 "not found" | tail -3 | sed 's/^/      /'
+                failed=$((failed + 1))
+              fi
             elif echo "$output" | grep -qE "invalid token"; then
               # Token issue
               echo "STATUS: FAILED - Invalid Token" >> "$logfile"

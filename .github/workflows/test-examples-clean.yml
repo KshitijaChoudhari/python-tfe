@@ -1,0 +1,128 @@
+name: Test All Example Files (Clean)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  run-examples:
+    name: Execute Example Files
+    runs-on: ubuntu-latest
+    env:
+      TFE_TOKEN: ${{ secrets.HCP_TF_TOKEN }}
+      TFE_ORG: ${{ secrets.HCP_TF_ORG }}
+      TFE_WORKSPACE: ${{ vars.TFE_WORKSPACE }}
+      TFE_WORKSPACE_ID: ${{ vars.TFE_WORKSPACE_ID }}
+      TFE_PROJECT_ID: ${{ vars.TFE_PROJECT_ID }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --no-cache-dir -e ".[dev]"
+
+      - name: Execute all example files with real credentials
+        run: |
+          echo "=== Executing Example Files with Real HCP Credentials ==="
+          echo "Organization: $TFE_ORG"
+          echo ""
+
+          mkdir -p /tmp/example-logs
+
+          executed=0
+          passed=0
+          failed=0
+          skipped=0
+
+          while IFS= read -r file; do
+            executed=$((executed + 1))
+            filename=$(basename "$file")
+            logfile="/tmp/example-logs/${filename%.py}.log"
+
+            echo "[$executed] Executing $filename..."
+
+            echo "=== Execution of $filename ===" > "$logfile"
+            echo "File: $file" >> "$logfile"
+            echo "Time: $(date)" >> "$logfile"
+            echo "" >> "$logfile"
+
+            # Decide runner: pytest if file contains pytest imports or test_ functions
+            if grep -qE "(^|\s)import\s+pytest|def\s+test_" "$file"; then
+              echo "Running with pytest: pytest -q $file" >> "$logfile"
+              timeout 120s pytest -q --maxfail=1 "$file" 2>&1 | tee -a "$logfile" > /tmp/output.txt || true
+            else
+              echo "Running as script: python $file" >> "$logfile"
+              timeout 120s python "$file" 2>&1 | tee -a "$logfile" > /tmp/output.txt || true
+            fi
+
+            output=$(cat /tmp/output.txt)
+            exit_code=$?
+
+            echo "" >> "$logfile"
+            echo "Exit Code: $exit_code" >> "$logfile"
+
+            if echo "$output" | grep -qE "(^FAILED|FAILED\s|Traceback \(most recent call last\)|pytfe.errors.NotFound)"; then
+              echo "STATUS: FAILED" >> "$logfile"
+              echo "    FAIL - Execution failed" >> "$logfile"
+              echo "    Reason excerpt:" >> "$logfile"
+              echo "" >> "$logfile"
+              echo "$output" | sed -n -e '/Traceback \(most recent call last\)/, +200p' >> "$logfile" || true
+              echo "$output" | grep -n "pytfe.errors.NotFound\|Traceback\|FAILED" | sed -n '1,20p' >> "$logfile" || true
+              echo "" >> "$logfile"
+              echo "    PRINTING TAIL OF LOG (200 lines)" >> "$logfile"
+              tail -n 200 "$logfile" >> "$logfile" || true
+              echo "" >> "$logfile"
+              echo "    FAIL - See $logfile for full details"
+              failed=$((failed + 1))
+            elif echo "$output" | grep -qE "(^PASSED|Passed|Success|Created|Found)"; then
+              echo "STATUS: SUCCESS" >> "$logfile"
+              echo "    PASS - Executed successfully" >> "$logfile"
+              passed=$((passed + 1))
+            else
+              echo "STATUS: UNDETERMINED" >> "$logfile"
+              echo "    WARN - Unexpected output; captured for inspection" >> "$logfile"
+              echo "    OUTPUT EXCERPT:" >> "$logfile"
+              echo "$output" | sed -n '1,40p' >> "$logfile"
+              failed=$((failed + 1))
+            fi
+
+            echo ""
+          done < <(find examples/ -name "*.py" -type f | sort)
+
+          echo "=== Execution Results ==="
+          echo "Total files: $executed"
+          echo "Passed: $passed"
+          echo "Failed: $failed"
+          echo "Skipped: $skipped"
+          echo ""
+
+          if [ $failed -gt 0 ]; then
+            echo "FAILURES DETECTED"
+            echo "See /tmp/example-logs for raw logs and artifact upload for details."
+            # print brief failure excerpts to console for quick visibility
+            echo "\nDetailed failure excerpts:"
+            for f in /tmp/example-logs/*.log; do
+              if grep -q "STATUS: FAILED" "$f"; then
+                echo "---- $(basename "$f") ----"
+                grep -n "pytfe.errors.NotFound\|Traceback\|FAILED\|STATUS: FAILED" "$f" | sed -n '1,30p'
+                echo "(Full log at $f)"
+                echo ""
+              fi
+            done
+            exit 2
+          fi
+
+      - name: Upload example execution logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-execution-logs
+          path: /tmp/example-logs
+          retention-days: 30
