@@ -276,6 +276,9 @@ jobs:
         echo "Organization: $TFE_ORG"
         echo ""
         
+        # Create logs directory
+        mkdir -p /tmp/example-logs
+        
         executed=0
         passed=0
         failed=0
@@ -284,6 +287,8 @@ jobs:
         while IFS= read -r file; do
           executed=$((executed + 1))
           filename=$(basename "$file")
+          logfile="/tmp/example-logs/${filename%.py}.log"
+          
           echo "[$executed] Executing $filename..."
           
           # Files that need specific IDs/parameters - skip for now
@@ -295,44 +300,75 @@ jobs:
              [[ "$filename" == "notification_configuration.py" ]] || \
              [[ "$filename" == "oauth_client.py" ]] || \
              [[ "$filename" == "oauth_token.py" ]]; then
+            echo "SKIPPED - Requires specific resource IDs" > "$logfile"
             echo "    SKIP - Requires specific resource IDs"
             skipped=$((skipped + 1))
           else
-            # Try running with credentials
-            timeout 30s python "$file" --org "$TFE_ORG" --token "$TFE_TOKEN" 2>&1 > /tmp/output.txt || true
+            # Try running with credentials and save full output
+            echo "=== Execution of $filename ===" > "$logfile"
+            echo "Command: python $file --org \$TFE_ORG --token \$TFE_TOKEN" >> "$logfile"
+            echo "Time: $(date)" >> "$logfile"
+            echo "" >> "$logfile"
+            
+            timeout 30s python "$file" --org "$TFE_ORG" --token "$TFE_TOKEN" 2>&1 | tee -a "$logfile" > /tmp/output.txt || true
             output=$(cat /tmp/output.txt)
             exit_code=$?
             
+            echo "" >> "$logfile"
+            echo "Exit Code: $exit_code" >> "$logfile"
+            
             if echo "$output" | grep -qE "(ImportError|ModuleNotFoundError)"; then
               # Import error - real bug
+              echo "STATUS: FAILED - Import Error" >> "$logfile"
               echo "    FAIL - Import error"
-              echo "$output" | head -5 | sed 's/^/      /'
+              echo "    Reason: Missing Python module"
+              echo "$output" | grep -E "(ImportError|ModuleNotFoundError)" | head -3 | sed 's/^/      /'
               failed=$((failed + 1))
-            elif echo "$output" | grep -qE "(unauthorized|forbidden|not found|invalid token)"; then
-              # Authentication/authorization issue
-              echo "    FAIL - Auth/Permissions issue"
-              echo "$output" | head -3 | sed 's/^/      /'
+            elif echo "$output" | grep -qE "(unauthorized|forbidden)"; then
+              # Authentication issue
+              echo "STATUS: FAILED - Authentication Error" >> "$logfile"
+              echo "    FAIL - Authentication failed"
+              echo "    Reason: Invalid or missing API token (HCP_TF_TOKEN secret)"
+              echo "$output" | grep -E "(unauthorized|forbidden)" | head -2 | sed 's/^/      /'
+              failed=$((failed + 1))
+            elif echo "$output" | grep -qE "not found"; then
+              # Resource not found
+              echo "STATUS: FAILED - Resource Not Found" >> "$logfile"
+              echo "    FAIL - Resource not found"
+              echo "    Reason: Workspace/resource doesn't exist in HCP organization"
+              echo "$output" | grep -B2 "not found" | tail -3 | sed 's/^/      /'
+              failed=$((failed + 1))
+            elif echo "$output" | grep -qE "invalid token"; then
+              # Token issue
+              echo "STATUS: FAILED - Invalid Token" >> "$logfile"
+              echo "    FAIL - Invalid token"
+              echo "    Reason: HCP_TF_TOKEN secret is incorrect or expired"
               failed=$((failed + 1))
             elif echo "$output" | grep -qE "(usage:|--help|required arguments)"; then
               # Needs more arguments, try --help
               if python "$file" --help > /dev/null 2>&1; then
+                echo "STATUS: PASSED - Needs Additional Params" >> "$logfile"
                 echo "    PASS - Has --help (needs additional params)"
                 passed=$((passed + 1))
               else
+                echo "STATUS: SKIPPED - Needs Parameters" >> "$logfile"
                 echo "    SKIP - Needs specific parameters"
                 skipped=$((skipped + 1))
               fi
             elif [ $exit_code -eq 0 ] || echo "$output" | grep -qE "(Successfully|Complete|Created|Listed|Found)"; then
               # Successful execution
+              echo "STATUS: SUCCESS" >> "$logfile"
               echo "    PASS - Executed successfully"
               echo "$output" | head -2 | sed 's/^/      /'
               passed=$((passed + 1))
             else
               # Check if it's actually fine (some examples just list and exit)
               if python "$file" --help > /dev/null 2>&1; then
+                echo "STATUS: PASSED - Validated" >> "$logfile"
                 echo "    PASS - File validated"
                 passed=$((passed + 1))
               else
+                echo "STATUS: WARNING - Unexpected Output" >> "$logfile"
                 echo "    WARN - Unexpected output"
                 echo "$output" | head -3 | sed 's/^/      /'
                 passed=$((passed + 1))
@@ -349,18 +385,44 @@ jobs:
         echo "Skipped: $skipped"
         echo ""
         
+        # Show detailed failure reasons if any
         if [ $failed -gt 0 ]; then
-          echo "❌ Some example files failed execution"
+          echo "FAILURES DETECTED"
+          echo ""
+          echo "Common Failure Reasons:"
+          echo "  1. Missing GitHub Secrets/Variables:"
+          echo "     - HCP_TF_TOKEN (secret)"
+          echo "     - HCP_TF_ORG (secret)"
+          echo "     - TFE_WORKSPACE (variable)"
+          echo "     - TFE_WORKSPACE_ID (variable)"
+          echo ""
+          echo "  2. Resource Not Found:"
+          echo "     - Workspace doesn't exist in HCP organization"
+          echo "     - Check TFE_WORKSPACE and TFE_WORKSPACE_ID values"
+          echo ""
+          echo "  3. Permissions Issues:"
+          echo "     - Token lacks permissions for the operation"
+          echo "     - Workspace is locked or read-only"
+          echo ""
+          echo "  4. Feature Not Available:"
+          echo "     - Enterprise features (policies, etc.)"
+          echo "     - Private registry not configured"
+          echo ""
           exit 1
-        else
-          echo "✅ All executable example files passed"
         fi
+    
+    - name: Upload Example Execution Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: example-execution-logs
+        path: /tmp/example-logs/
+        retention-days: 30
 
   test-dependent-examples:
     name: Test Dependent Examples (Integration Chain)
     runs-on: ubuntu-latest
     needs: [test-example-syntax, test-example-imports]
-    continue-on-error: true
     env:
       TFE_TOKEN: ${{ secrets.HCP_TF_TOKEN }}
       TFE_ORG: ${{ secrets.HCP_TF_ORG }}
@@ -400,13 +462,13 @@ jobs:
           WORKSPACE_ID=$(echo "$WORKSPACE_OUTPUT" | grep -oP 'ID: \K[^\s]+' | head -1 || echo "")
           
           if [ -z "$WORKSPACE_ID" ] || [ -z "$WORKSPACE_NAME" ]; then
-            echo "❌ Failed to create workspace or extract workspace details"
+            echo "Failed to create workspace or extract workspace details"
             echo "Workspace Name: $WORKSPACE_NAME"
             echo "Workspace ID: $WORKSPACE_ID"
             exit 1
           fi
           
-          echo "✅ Created workspace: $WORKSPACE_NAME ($WORKSPACE_ID)"
+          echo "Created workspace: $WORKSPACE_NAME ($WORKSPACE_ID)"
           
           echo ""
           echo "=================================================="
@@ -460,14 +522,14 @@ jobs:
           PLAN_ID=$(echo "$RUN_OUTPUT" | grep -oP 'Plan ID: \K[^\s]+' || echo "")
           
           if [ -z "$PLAN_ID" ]; then
-            echo "⚠️ Could not extract Plan ID, trying alternate method..."
+            echo "Could not extract Plan ID, trying alternate method..."
             # Wait a bit and try to get plan from run
             sleep 10
             # This would need the run.py to support reading a run
           fi
           
           if [ -n "$PLAN_ID" ]; then
-            echo "✅ Plan ID: $PLAN_ID"
+            echo "Plan ID: $PLAN_ID"
             
             echo ""
             echo "=================================================="
@@ -478,9 +540,9 @@ jobs:
               --token "$TFE_TOKEN" \
               --plan-id "$PLAN_ID" 2>&1 || true
             
-            echo "✅ plan.py executed successfully"
+            echo "plan.py executed successfully"
           else
-            echo "⚠️ Skipping plan.py test - no plan ID available"
+            echo "Skipping plan.py test - no plan ID available"
           fi
           
           # Wait for plan to complete
@@ -491,7 +553,7 @@ jobs:
             
             # Check if we can apply (would need run status check)
             # For now, we'll skip apply.py as it requires confirmation
-            echo "⚠️ Skipping apply.py test - requires plan confirmation"
+            echo "Skipping apply.py test - requires plan confirmation"
           fi
           
           echo ""
@@ -505,7 +567,7 @@ jobs:
             --workspace "$WORKSPACE_NAME" \
             --list 2>&1 || true
           
-          echo "✅ configuration_version.py executed successfully"
+          echo "configuration_version.py executed successfully"
           
           echo ""
           echo "=================================================="
@@ -518,7 +580,7 @@ jobs:
             --workspace "$WORKSPACE_NAME" \
             --delete 2>&1 || true
           
-          echo "✅ Integration chain completed"
+          echo "Integration chain completed"
 
   summary:
     name: Test Summary
@@ -529,23 +591,88 @@ jobs:
     steps:
     - name: Check results
       run: |
-        echo "=== Example Testing Summary ==="
-        echo "Syntax testing: ${{ needs.test-example-syntax.result }}"
-        echo "Import testing: ${{ needs.test-example-imports.result }}"
-        echo "Linting: ${{ needs.test-example-linting.result }}"
-        echo "Multi-Python testing: ${{ needs.test-all-examples-matrix.result }}"
-        echo "HCP Integration: ${{ needs.test-hcp-integration.result }}"
-        echo "Dependent Examples: ${{ needs.test-dependent-examples.result }}"
+        echo "=========================================="
+        echo "    EXAMPLE TESTING SUMMARY"
+        echo "=========================================="
+        echo ""
+        echo "Job Results:"
+        echo "  Syntax testing:         ${{ needs.test-example-syntax.result }}"
+        echo "  Import testing:         ${{ needs.test-example-imports.result }}"
+        echo "  Linting:                ${{ needs.test-example-linting.result }}"
+        echo "  Multi-Python testing:   ${{ needs.test-all-examples-matrix.result }}"
+        echo "  HCP Integration:        ${{ needs.test-hcp-integration.result }}"
+        echo "  Dependent Examples:     ${{ needs.test-dependent-examples.result }}"
+        echo ""
         
-        if [ "${{ needs.test-example-syntax.result }}" != "success" ] || \
-           [ "${{ needs.test-example-imports.result }}" != "success" ] || \
-           [ "${{ needs.test-all-examples-matrix.result }}" != "success" ]; then
+        # Check for failures and provide specific reasons
+        failed=0
+        
+        if [ "${{ needs.test-example-syntax.result }}" != "success" ]; then
+          echo "[FAILED] Syntax Check"
+          echo "   Reason: One or more example files have Python syntax errors"
+          echo "   Action: Check the syntax test logs for specific files"
           echo ""
-          echo "ERROR: Some tests failed!"
+          failed=1
+        fi
+        
+        if [ "${{ needs.test-example-imports.result }}" != "success" ]; then
+          echo "[FAILED] Import Check"
+          echo "   Reason: Example files have import errors or missing dependencies"
+          echo "   Action: Check the import test logs for missing modules"
+          echo ""
+          failed=1
+        fi
+        
+        if [ "${{ needs.test-example-linting.result }}" != "success" ]; then
+          echo "[FAILED] Linting"
+          echo "   Reason: Code style issues detected by ruff"
+          echo "   Action: Run 'ruff check examples/' locally to see issues"
+          echo ""
+          failed=1
+        fi
+        
+        if [ "${{ needs.test-all-examples-matrix.result }}" != "success" ]; then
+          echo "[FAILED] Matrix Testing"
+          echo "   Reason: Examples fail on one or more Python versions (3.10-3.13)"
+          echo "   Action: Check matrix test logs for version-specific issues"
+          echo ""
+          failed=1
+        fi
+        
+        if [ "${{ needs.test-hcp-integration.result }}" == "failure" ]; then
+          echo "[FAILED] HCP Integration"
+          echo "   Reason: Examples failed when run with real HCP Terraform credentials"
+          echo "   Possible causes:"
+          echo "     - Missing GitHub Secrets (HCP_TF_TOKEN, HCP_TF_ORG)"
+          echo "     - Missing GitHub Variables (TFE_WORKSPACE, TFE_WORKSPACE_ID)"
+          echo "     - Invalid credentials or permissions"
+          echo "     - Resources don't exist in HCP organization"
+          echo "   Action: Check 'Execute Example Files' job for specific failures"
+          echo ""
+          failed=1
+        fi
+        
+        if [ "${{ needs.test-dependent-examples.result }}" == "failure" ]; then
+          echo "[FAILED] Dependent Examples"
+          echo "   Reason: Integration chain test failed"
+          echo "   Possible causes:"
+          echo "     - Failed to create test workspace"
+          echo "     - Failed to upload configuration"
+          echo "     - Failed to queue run or get plan ID"
+          echo "   Action: Check 'Test Dependent Examples' job for specific step that failed"
+          echo ""
+          failed=1
+        fi
+        
+        if [ $failed -eq 1 ]; then
+          echo "=========================================="
+          echo "CI FAILED - See reasons above"
+          echo "=========================================="
           exit 1
         else
-          echo ""
-          echo "✅ All example file tests passed!"
+          echo "=========================================="
+          echo "ALL TESTS PASSED"
+          echo "=========================================="
         fi
 
   test-hcp-integration:
