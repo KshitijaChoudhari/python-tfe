@@ -1,5 +1,38 @@
 # Unreleased
 
+# v0.1.2
+
+## Features
+
+### Registry Management
+* Added registry provider version resource with full CRUD operations by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+* Added create method for registry provider versions by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+* Added list method with pagination support for registry provider versions by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+* Added read method for fetching specific registry provider version details by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+* Added delete method for removing registry provider versions by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+* Added comprehensive unit tests for registry provider versions by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+
+## Breaking Change
+
+### Iterator Pattern Migration for List Method
+* Migrated Policy Evaluation resource to use iterator pattern for list operations and renamed attribute task_stage to policy_attachable at PolicyEvaluation Model by @isivaselvan [#68](https://github.com/hashicorp/python-tfe/pull/68)
+* Migrated Policy Set Outcome resource to use iterator pattern for list operations by @isivaselvan [#68](https://github.com/hashicorp/python-tfe/pull/68)
+* Migrated OAuth Token resource to use iterator pattern and removed deprecated Uid attribute by @isivaselvan [#68](https://github.com/hashicorp/python-tfe/pull/68)
+* Migrated Reserved Tag Key resource to use iterator pattern, removed read method, and renamed service class by @isivaselvan [#68](https://github.com/hashicorp/python-tfe/pull/68)
+
+### Deprecations
+* Models OAuthTokenList, PolicyEvaluationList, PolicySetOutcomeList, ReservedTagKeyList were removed from models as part of initial Iterator pattern conversion of List Method.
+* page_number attribute was removed at Models of OAuthTokenListOptions, PolicyEvaluationListOptions, PolicySetOutcomeListFilter and ReservedTagKeyListOptions.
+* Removed deprecated Uid attribute at OauthToken Model.
+
+### Enhancements
+* Updated query run functions with correct api endpoints, parameters and payload options for improved performance and consistency by @aayushsingh2502 [#69](https://github.com/hashicorp/python-tfe/pull/69)
+* Removed ListOptions from model and improved Cancel and Force Cancel option handling by @aayushsingh2502 [#69](https://github.com/hashicorp/python-tfe/pull/69)
+* Updated function naming conventions in example files for better clarity by @aayushsingh2502 [#69](https://github.com/hashicorp/python-tfe/pull/69)
+
+## Bug Fixes
+* Fixed the issue related to the Regex pattern on string id validation for registry resource by @isivaselvan [#66](https://github.com/hashicorp/python-tfe/pull/66)
+
 # v0.1.1
 
 ## Features

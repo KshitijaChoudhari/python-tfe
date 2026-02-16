@@ -71,7 +71,6 @@ from .oauth_client import (
 )
 from .oauth_token import (
     OAuthToken,
-    OAuthTokenList,
     OAuthTokenListOptions,
     OAuthTokenUpdateOptions,
 )
@@ -118,7 +117,6 @@ from .policy_check import (
 from .policy_evaluation import (
     PolicyAttachable,
     PolicyEvaluation,
-    PolicyEvaluationList,
     PolicyEvaluationListOptions,
     PolicyEvaluationStatus,
     PolicyEvaluationStatusTimestamps,
@@ -162,16 +160,15 @@ from .project import (
 # ── Query Runs ────────────────────────────────────────────────────────────────
 from .query_run import (
     QueryRun,
-    QueryRunCancelOptions,
+    QueryRunActions,
     QueryRunCreateOptions,
-    QueryRunForceCancelOptions,
-    QueryRunList,
+    QueryRunIncludeOpt,
     QueryRunListOptions,
-    QueryRunLogs,
     QueryRunReadOptions,
-    QueryRunResults,
+    QueryRunSource,
     QueryRunStatus,
-    QueryRunType,
+    QueryRunStatusTimestamps,
+    QueryRunVariable,
 )
 
 # ── Registry Modules / Providers ──────────────────────────────────────────────
@@ -217,12 +214,18 @@ from .registry_provider import (
     RegistryProviderPermissions,
     RegistryProviderReadOptions,
 )
+from .registry_provider_version import (
+    RegistryProviderVersion,
+    RegistryProviderVersionCreateOptions,
+    RegistryProviderVersionID,
+    RegistryProviderVersionListOptions,
+    RegistryProviderVersionPermissions,
+)
 
 # ── Reserved Tag Keys ─────────────────────────────────────────────────────────
 from .reserved_tag_key import (
     ReservedTagKey,
     ReservedTagKeyCreateOptions,
-    ReservedTagKeyList,
     ReservedTagKeyListOptions,
     ReservedTagKeyUpdateOptions,
 )
@@ -393,7 +396,6 @@ __all__ = [
     "ServiceProviderType",
     # OAuth token
     "OAuthToken",
-    "OAuthTokenList",
     "OAuthTokenListOptions",
     "OAuthTokenUpdateOptions",
     # SSH keys
@@ -405,7 +407,6 @@ __all__ = [
     # Reserved tag keys
     "ReservedTagKey",
     "ReservedTagKeyCreateOptions",
-    "ReservedTagKeyList",
     "ReservedTagKeyListOptions",
     "ReservedTagKeyUpdateOptions",
     # Agent & pools
@@ -474,18 +475,23 @@ __all__ = [
     "RegistryProviderListOptions",
     "RegistryProviderPermissions",
     "RegistryProviderReadOptions",
+    # Registry provider versions
+    "RegistryProviderVersion",
+    "RegistryProviderVersionCreateOptions",
+    "RegistryProviderVersionID",
+    "RegistryProviderVersionListOptions",
+    "RegistryProviderVersionPermissions",
     # Query runs
     "QueryRun",
-    "QueryRunCancelOptions",
+    "QueryRunActions",
     "QueryRunCreateOptions",
-    "QueryRunForceCancelOptions",
-    "QueryRunList",
+    "QueryRunIncludeOpt",
     "QueryRunListOptions",
-    "QueryRunLogs",
     "QueryRunReadOptions",
-    "QueryRunResults",
+    "QueryRunSource",
     "QueryRunStatus",
-    "QueryRunType",
+    "QueryRunStatusTimestamps",
+    "QueryRunVariable",
     # Core (from old types.py, now split)
     "Entitlements",
     "ExecutionMode",
@@ -628,7 +634,6 @@ __all__ = [
     # Policy Evaluation
     "PolicyAttachable",
     "PolicyEvaluation",
-    "PolicyEvaluationList",
     "PolicyEvaluationListOptions",
     "PolicyEvaluationStatus",
     "PolicyEvaluationStatusTimestamps",
