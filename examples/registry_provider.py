@@ -49,20 +49,20 @@ def test_list_simple():
 
     try:
         providers = list(client.registry_providers.list(org))
-        print(f"✓ Found {len(providers)} providers in organization '{org}'")
+        print(f"Found {len(providers)} providers in organization '{org}'")
 
         for i, provider in enumerate(providers[:5], 1):
-            print(f"  {i}. {provider.name}")
-            print(f"     Namespace: {provider.namespace}")
-            print(f"     Registry: {provider.registry_name.value}")
-            print(f"     ID: {provider.id}")
-            print(f"     Can Delete: {provider.permissions.can_delete}")
+            print(f"{i}. {provider.name}")
+            print(f"Namespace: {provider.namespace}")
+            print(f"Registry: {provider.registry_name.value}")
+            print(f"ID: {provider.id}")
+            print(f"Can Delete: {provider.permissions.can_delete}")
             print()
 
         return providers
 
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"Error: {e}")
         return []
 
 
@@ -79,7 +79,7 @@ def test_list_with_options():
         )
 
         providers = list(client.registry_providers.list(org, options))
-        print(f"✓ Found {len(providers)} providers matching search 'test'")
+        print(f"Found {len(providers)} providers matching search 'test'")
 
         # Test with include
         include_options = RegistryProviderListOptions(
@@ -87,12 +87,12 @@ def test_list_with_options():
         )
 
         detailed_providers = list(client.registry_providers.list(org, include_options))
-        print(f"✓ Found {len(detailed_providers)} providers with version details")
+        print(f"Found {len(detailed_providers)} providers with version details")
 
         return providers
 
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"Error: {e}")
         return []
 
 
@@ -112,16 +112,16 @@ def test_create_private():
         )
 
         provider = client.registry_providers.create(org, options)
-        print(f"✓ Created private provider: {provider.name}")
-        print(f"  ID: {provider.id}")
-        print(f"  Namespace: {provider.namespace}")
-        print(f"  Registry: {provider.registry_name.value}")
-        print(f"  Created: {provider.created_at}")
+        print(f"Created private provider: {provider.name}")
+        print(f"ID: {provider.id}")
+        print(f"Namespace: {provider.namespace}")
+        print(f"Registry: {provider.registry_name.value}")
+        print(f"Created: {provider.created_at}")
 
         return provider
 
     except Exception as e:
-        print(f"✗ Error creating private provider: {e}")
+        print(f"Error creating private provider: {e}")
         return None
 
 
@@ -142,16 +142,16 @@ def test_create_public():
         )
 
         provider = client.registry_providers.create(org, options)
-        print(f"✓ Created public provider: {provider.name}")
-        print(f"  ID: {provider.id}")
-        print(f"  Namespace: {provider.namespace}")
-        print(f"  Registry: {provider.registry_name.value}")
-        print(f"  Created: {provider.created_at}")
+        print(f"Created public provider: {provider.name}")
+        print(f"ID: {provider.id}")
+        print(f"Namespace: {provider.namespace}")
+        print(f"Registry: {provider.registry_name.value}")
+        print(f"Created: {provider.created_at}")
 
         return provider
 
     except Exception as e:
-        print(f"✗ Error creating public provider: {e}")
+        print(f"Error creating public provider: {e}")
         return None
 
 
@@ -162,7 +162,7 @@ def test_read_with_id(provider_data):
     client, org = get_client_and_org()
 
     if not provider_data:
-        print("⚠️  No provider data provided")
+        print("No provider data provided")
         return None
 
     try:
@@ -175,13 +175,13 @@ def test_read_with_id(provider_data):
 
         # Basic read
         provider = client.registry_providers.read(provider_id)
-        print(f"✓ Read provider: {provider.name}")
-        print(f"  ID: {provider.id}")
-        print(f"  Namespace: {provider.namespace}")
-        print(f"  Registry: {provider.registry_name.value}")
-        print(f"  Created: {provider.created_at}")
-        print(f"  Updated: {provider.updated_at}")
-        print(f"  Can Delete: {provider.permissions.can_delete}")
+        print(f"Read provider: {provider.name}")
+        print(f"ID: {provider.id}")
+        print(f"Namespace: {provider.namespace}")
+        print(f"Registry: {provider.registry_name.value}")
+        print(f"Created: {provider.created_at}")
+        print(f"Updated: {provider.updated_at}")
+        print(f"Can Delete: {provider.permissions.can_delete}")
 
         # Read with options
         options = RegistryProviderReadOptions(
@@ -189,19 +189,17 @@ def test_read_with_id(provider_data):
         )
 
         detailed_provider = client.registry_providers.read(provider_id, options)
-        print(f"✓ Read with options: {detailed_provider.name}")
+        print(f"Read with options: {detailed_provider.name}")
 
         if detailed_provider.registry_provider_versions:
-            print(
-                f"  Found {len(detailed_provider.registry_provider_versions)} versions"
-            )
+            print(f"Found {len(detailed_provider.registry_provider_versions)} versions")
         else:
-            print("  No versions found")
+            print("No versions found")
 
         return provider
 
     except Exception as e:
-        print(f"✗ Error reading provider: {e}")
+        print(f"Error reading provider: {e}")
         return None
 
 
@@ -212,7 +210,7 @@ def test_delete_by_id(provider_data):
     client, org = get_client_and_org()
 
     if not provider_data:
-        print("⚠️  No provider data provided")
+        print("No provider data provided")
         return False
 
     try:
@@ -225,11 +223,11 @@ def test_delete_by_id(provider_data):
 
         # Verify provider exists
         provider = client.registry_providers.read(provider_id)
-        print(f"✓ Found provider to delete: {provider.name}")
+        print(f"Found provider to delete: {provider.name}")
 
         # Delete the provider
         client.registry_providers.delete(provider_id)
-        print("✓ Successfully called delete() for provider")
+        print("Successfully called delete() for provider")
 
         # Verify deletion (optional - may take time)
         import time
@@ -238,20 +236,20 @@ def test_delete_by_id(provider_data):
 
         try:
             client.registry_providers.read(provider_id)
-            print("⚠️  Provider still exists (deletion may take time)")
+            print("Provider still exists (deletion may take time)")
         except Exception:
-            print("✓ Provider successfully deleted")
+            print("Provider successfully deleted")
 
         return True
 
     except Exception as e:
-        print(f"✗ Error deleting provider: {e}")
+        print(f"Error deleting provider: {e}")
         return False
 
 
 def main():
     """Run all tests in sequence."""
-    print("🚀 REGISTRY PROVIDER INDIVIDUAL TESTS")
+    print("REGISTRY PROVIDER INDIVIDUAL TESTS")
     print("=" * 50)
 
     # Test 1: List providers
@@ -262,9 +260,9 @@ def main():
     test_list_with_options()
     print()
 
-    # ⚠️ WARNING: Uncomment the following tests to create/delete providers
-    print("⚠️  WARNING: Creation and deletion tests are commented out for safety")
-    print("⚠️  Uncomment them in the code to test creation and deletion")
+    #  WARNING: Uncomment the following tests to create/delete providers
+    print("WARNING: Creation and deletion tests are commented out for safety")
+    print("Uncomment them in the code to test creation and deletion")
     print()
 
     # UNCOMMENT TO TEST CREATION:
@@ -297,8 +295,8 @@ def main():
         test_read_with_id(existing_provider)
         print()
 
-    print("✅ Individual tests completed!")
-    print("💡 To test creation/deletion, uncomment the relevant sections in the code")
+    print("Individual tests completed!")
+    print("To test creation/deletion, uncomment the relevant sections in the code")
 
 
 if __name__ == "__main__":

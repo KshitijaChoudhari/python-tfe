@@ -36,29 +36,29 @@ def main():
     address = os.environ.get("TFE_ADDRESS", "https://app.terraform.io")
 
     if not token:
-        print("❌ TFE_TOKEN environment variable is required")
+        print("TFE_TOKEN environment variable is required")
         return 1
 
     if not org:
-        print("❌ TFE_ORG environment variable is required")
+        print("TFE_ORG environment variable is required")
         return 1
 
     # Create TFE client
     config = TFEConfig(token=token, address=address)
     client = TFEClient(config)
 
-    print(f"🔗 Connected to: {address}")
-    print(f"🏢 Organization: {org}")
+    print(f"Connected to: {address}")
+    print(f" Organization: {org}")
 
     try:
         # Example 1: Find agent pools to demonstrate agent operations
-        print("\n📋 Finding agent pools...")
+        print("\n Finding agent pools...")
         agent_pools = client.agent_pools.list(org)
 
         # Convert to list to check if empty and get count
         pool_list = list(agent_pools)
         if not pool_list:
-            print("⚠️ No agent pools found. Create an agent pool first.")
+            print("No agent pools found. Create an agent pool first.")
             return 1
 
         print(f"Found {len(pool_list)} agent pools:")
@@ -66,11 +66,11 @@ def main():
             print(f"  - {pool.name} (ID: {pool.id}, Agents: {pool.agent_count})")
 
         # Example 2: List agents in each pool
-        print("\n🤖 Listing agents in each pool...")
+        print("\n Listing agents in each pool...")
         total_agents = 0
 
         for pool in pool_list:
-            print(f"\n📂 Agents in pool '{pool.name}':")
+            print(f"\n Agents in pool '{pool.name}':")
 
             # Use optional parameters for listing
             list_options = AgentListOptions(page_size=10)  # Optional parameter
@@ -81,45 +81,45 @@ def main():
             if agent_list:
                 total_agents += len(agent_list)
                 for agent in agent_list:
-                    print(f"  - Agent {agent.id}")
-                    print(f"    Name: {agent.name or 'Unnamed'}")
-                    print(f"    Status: {agent.status}")
-                    print(f"    Version: {agent.version or 'Unknown'}")
-                    print(f"    IP: {agent.ip_address or 'Unknown'}")
-                    print(f"    Last Ping: {agent.last_ping_at or 'Never'}")
+                    print(f"Agent {agent.id}")
+                    print(f"Name: {agent.name or 'Unnamed'}")
+                    print(f"Status: {agent.status}")
+                    print(f"Version: {agent.version or 'Unknown'}")
+                    print(f"IP: {agent.ip_address or 'Unknown'}")
+                    print(f"Last Ping: {agent.last_ping_at or 'Never'}")
 
                     # Example 3: Read detailed agent information
                     try:
                         agent_details = client.agents.read(agent.id)
-                        print("    ✅ Agent details retrieved successfully")
-                        print(f"      Full name: {agent_details.name or 'Unnamed'}")
-                        print(f"      Current status: {agent_details.status}")
+                        print("Agent details retrieved successfully")
+                        print(f"Full name: {agent_details.name or 'Unnamed'}")
+                        print(f"Current status: {agent_details.status}")
                     except NotFound:
-                        print("    ⚠️ Agent details not accessible")
+                        print("Agent details not accessible")
                     except Exception as e:
-                        print(f"    ❌ Error reading agent details: {e}")
+                        print(f"Error reading agent details: {e}")
 
                     print("")
             else:
-                print("  No agents found in this pool")
+                print("No agents found in this pool")
 
         if total_agents == 0:
-            print("\n⚠️ No agents found in any pools.")
+            print("\n No agents found in any pools.")
             print("To see agents in action:")
             print("1. Create an agent pool")
             print("2. Run a Terraform Enterprise agent binary connected to the pool")
             print("3. Run this example again")
         else:
-            print(f"\n📊 Total agents found across all pools: {total_agents}")
+            print(f"\n Total agents found across all pools: {total_agents}")
 
-        print("\n🎉 Agent operations completed successfully!")
+        print("\n Agent operations completed successfully!")
         return 0
 
     except NotFound as e:
-        print(f"❌ Resource not found: {e}")
+        print(f" Resource not found: {e}")
         return 1
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
         return 1
 
 

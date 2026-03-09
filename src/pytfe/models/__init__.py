@@ -86,6 +86,14 @@ from .organization import (
     ReadRunQueueOptions,
     RunQueue,
 )
+from .organization_membership import (
+    OrganizationMembership,
+    OrganizationMembershipCreateOptions,
+    OrganizationMembershipListOptions,
+    OrganizationMembershipReadOptions,
+    OrganizationMembershipStatus,
+    OrgMembershipIncludeOpt,
+)
 from .policy import (
     Policy,
     PolicyCreateOptions,
@@ -132,6 +140,12 @@ from .policy_set import (
     PolicySetRemoveWorkspaceExclusionsOptions,
     PolicySetRemoveWorkspacesOptions,
     PolicySetUpdateOptions,
+)
+from .policy_set_parameter import (
+    PolicySetParameter,
+    PolicySetParameterCreateOptions,
+    PolicySetParameterListOptions,
+    PolicySetParameterUpdateOptions,
 )
 from .policy_types import (
     EnforcementLevel,
@@ -293,6 +307,11 @@ from .task_stages import (
     TaskStageStatus,
     TaskStageStatusTimestamps,
 )
+from .team import (
+    OrganizationAccess,
+    Team,
+    TeamPermissions,
+)
 
 # Variables
 from .variable import (
@@ -351,6 +370,12 @@ from .workspace import (
     WorkspaceTagListOptions,
     WorkspaceUpdateOptions,
     WorkspaceUpdateRemoteStateConsumersOptions,
+)
+
+# ── Workspace Resources ───────────────────────────────────────────────────────
+from .workspace_resource import (
+    WorkspaceResource,
+    WorkspaceResourceListOptions,
 )
 
 # ── Public surface ────────────────────────────────────────────────────────────
@@ -468,6 +493,15 @@ __all__ = [
     "Organization",
     "OrganizationCreateOptions",
     "OrganizationUpdateOptions",
+    "OrganizationMembership",
+    "OrganizationMembershipCreateOptions",
+    "OrganizationMembershipListOptions",
+    "OrganizationMembershipReadOptions",
+    "OrganizationMembershipStatus",
+    "OrgMembershipIncludeOpt",
+    "OrganizationAccess",
+    "Team",
+    "TeamPermissions",
     "Project",
     "ProjectAddTagBindingsOptions",
     "ProjectCreateOptions",
@@ -515,6 +549,9 @@ __all__ = [
     "WorkspaceTagListOptions",
     "WorkspaceUpdateOptions",
     "WorkspaceUpdateRemoteStateConsumersOptions",
+    # Workspace Resources
+    "WorkspaceResource",
+    "WorkspaceResourceListOptions",
     "RunQueue",
     "ReadRunQueueOptions",
     # Runs
@@ -618,6 +655,11 @@ __all__ = [
     "PolicySetRemoveWorkspaceExclusionsOptions",
     "PolicySetRemoveProjectsOptions",
     "PolicySetUpdateOptions",
+    # Policy Set Parameters
+    "PolicySetParameter",
+    "PolicySetParameterCreateOptions",
+    "PolicySetParameterListOptions",
+    "PolicySetParameterUpdateOptions",
     "PolicyKind",
     "EnforcementLevel",
     # Variable Sets
