@@ -470,6 +470,13 @@ class InvalidPolicyEvaluationIDError(InvalidValues):
         super().__init__(message)
 
 
+class InvalidTaskResultsCallbackStatus(ValidationError):
+    """Raised when an invalid task results callback status is provided."""
+
+    def __init__(self, message: str = "invalid status for task results callback"):
+        super().__init__(message)
+
+
 # Policy Set Parameter errors
 class InvalidParamIDError(InvalidValues):
     """Raised when an invalid policy set parameter ID is provided."""

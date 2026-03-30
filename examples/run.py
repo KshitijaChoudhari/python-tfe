@@ -212,11 +212,11 @@ def main():
                 print(f"Error getting runs for actions demo: {e}")
                 return
 
-        if not run_list.items:
+        if not run_list:
             print("No runs available for actions demo")
             return
 
-        demo_run = run_list.items[0]
+        demo_run = run_list[0]
         print(f"Demonstrating actions for run: {demo_run.id}")
         print(f"Current status: {demo_run.status}")
 

@@ -292,7 +292,6 @@ from .ssh_key import (
     SSHKeyUpdateOptions,
 )
 from .task_result import (
-    TaskEnforcementLevel,
     TaskResult,
     TaskResultStatus,
     TaskResultStatusTimestamps,
@@ -300,7 +299,6 @@ from .task_result import (
 from .task_stages import (
     Actions,
     Permissions,
-    Stage,
     TaskStage,
     TaskStageListOptions,
     TaskStageOverrideOptions,
@@ -597,6 +595,19 @@ __all__ = [
     "RunTaskCreateOptions",
     "RunTaskUpdateOptions",
     "RunTaskReadOptions",
+    # Task results
+    "TaskResult",
+    "TaskResultStatus",
+    "TaskResultStatusTimestamps",
+    # Task stages
+    "Actions",
+    "Permissions",
+    "TaskStage",
+    "TaskStageListOptions",
+    "TaskStageOverrideOptions",
+    "TaskStageReadOptions",
+    "TaskStageStatus",
+    "TaskStageStatusTimestamps",
     # Run triggers
     "RunTrigger",
     "RunTriggerCreateOptions",
