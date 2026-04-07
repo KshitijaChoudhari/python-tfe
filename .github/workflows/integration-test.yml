@@ -2,43 +2,26 @@ name: SDK Integration Tests
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Install dependencies
-        run: make dev-install
-
-      - name: Run format check
-        run: make fmt-check
-
-      - name: Run lint
-        run: make lint
-
-      - name: Run unit tests
-        run: make type-check && .venv/bin/python -m pytest -v tests/
+      - run: make dev-install
+      - run: make fmt-check
+      - run: make lint
+      - run: make type-check && .venv/bin/python -m pytest -v tests/
 
   integration-tests:
     name: Integration Tests (Example Files)
     runs-on: ubuntu-latest
-    needs: unit-tests  # only runs if unit tests pass
+    needs: unit-tests
 
     env:
       TFE_TOKEN: ${{ secrets.TFE_TOKEN }}
@@ -60,133 +43,9 @@ jobs:
       TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Install dependencies
-        run: make dev-install
-
-      - name: agent.py
-        run: .venv/bin/python examples/agent.py || true
-
-      - name: agent_pool.py
-        run: .venv/bin/python examples/agent_pool.py || true
-
-      - name: apply.py
-        if: ${{ env.TFE_APPLY_ID != '' }}
-        run: .venv/bin/python examples/apply.py --apply-id "$TFE_APPLY_ID" || true
-
-      - name: configuration_version.py
-        if: ${{ env.TFE_WORKSPACE_ID != '' }}
-        run: .venv/bin/python examples/configuration_version.py || true
-
-      - name: notification_configuration.py
-        if: ${{ env.TFE_WORKSPACE_ID != '' || env.TFE_WORKSPACE_NAME != '' }}
-        run: .venv/bin/python examples/notification_configuration.py || true
-
-      - name: oauth_client.py
-        run: .venv/bin/python examples/oauth_client.py || true
-
-      - name: oauth_token.py
-        run: .venv/bin/python examples/oauth_token.py || true
-
-      - name: org.py
-        run: .venv/bin/python examples/org.py || true
-
-      - name: organization_membership.py
-        run: .venv/bin/python examples/organization_membership.py || true
-
-      - name: plan.py
-        if: ${{ env.TFE_PLAN_ID != '' }}
-        run: .venv/bin/python examples/plan.py --plan-id "$TFE_PLAN_ID" || true
-
-      - name: policy_check.py
-        if: ${{ env.TFE_RUN_ID != '' }}
-        run: .venv/bin/python examples/policy_check.py --run-id "$TFE_RUN_ID" || true
-
-      - name: policy_evaluation.py
-        if: ${{ env.TFE_TASK_STAGE_ID != '' }}
-        run: .venv/bin/python examples/policy_evaluation.py --task-stage-id "$TFE_TASK_STAGE_ID" || true
-
-      - name: policy_set_parameter.py
-        if: ${{ env.TFE_POLICY_SET_ID != '' }}
-        run: .venv/bin/python examples/policy_set_parameter.py --policy-set-id "$TFE_POLICY_SET_ID" || true
-
-      - name: policy_set.py
-        run: .venv/bin/python examples/policy_set.py --org "$TFE_ORG" || true
-
-      - name: policy.py
-        if: ${{ env.TFE_POLICY_NAME != '' }}
-        run: .venv/bin/python examples/policy.py --org "$TFE_ORG" --policy-name "$TFE_POLICY_NAME" || true
-
-      - name: project.py
-        run: .venv/bin/python examples/project.py --list --organization "$TFE_ORG" || true
-
-      - name: query_run.py
-        if: ${{ env.TFE_WORKSPACE_NAME != '' }}
-        run: .venv/bin/python examples/query_run.py || true
-
-      - name: registry_module.py
-        run: .venv/bin/python examples/registry_module.py || true
-
-      - name: registry_provider_version.py
-        if: ${{ env.TFE_REG_PROV_NS != '' && env.TFE_REG_PROV_NAME != '' }}
-        run: |
-          .venv/bin/python examples/registry_provider_version.py \
-            --organization "$TFE_ORG" \
-            --namespace "$TFE_REG_PROV_NS" \
-            --name "$TFE_REG_PROV_NAME" || true
-
-      - name: registry_provider.py
-        run: .venv/bin/python examples/registry_provider.py || true
-
-      - name: reserved_tag_key.py
-        run: .venv/bin/python examples/reserved_tag_key.py || true
-
-      - name: run_events.py
-        if: ${{ env.TFE_RUN_ID != '' }}
-        run: .venv/bin/python examples/run_events.py --run-id "$TFE_RUN_ID" || true
-
-      - name: run_task.py
-        run: .venv/bin/python examples/run_task.py --org "$TFE_ORG" || true
-
-      - name: run_trigger.py
-        run: .venv/bin/python examples/run_trigger.py --org "$TFE_ORG" || true
-
-      - name: run.py
-        run: .venv/bin/python examples/run.py --organization "$TFE_ORG" || true
-
-      - name: ssh_keys.py
-        if: ${{ env.SSH_PRIVATE_KEY != '' }}
-        run: .venv/bin/python examples/ssh_keys.py || true
-
-      - name: state_versions.py
-        if: ${{ env.TFE_WORKSPACE_ID != '' && env.TFE_WORKSPACE_NAME != '' }}
-        run: |
-          .venv/bin/python examples/state_versions.py \
-            --org "$TFE_ORG" \
-            --workspace "$TFE_WORKSPACE_NAME" \
-            --workspace-id "$TFE_WORKSPACE_ID" || true
-
-      - name: variable_sets.py
-        run: .venv/bin/python examples/variable_sets.py || true
-
-      - name: variables.py
-        if: ${{ env.TFE_WORKSPACE_ID != '' }}
-        run: .venv/bin/python examples/variables.py || true
-
-      - name: workspace_resources.py
-        if: ${{ env.TFE_WORKSPACE_ID != '' }}
-        run: |
-          .venv/bin/python examples/workspace_resources.py \
-            --list \
-            --workspace-id "$TFE_WORKSPACE_ID" \
-            --page-size 10 || true
-
-      - name: workspace.py
-        run: .venv/bin/python examples/workspace.py --org "$TFE_ORG" --list || true
+      - run: make dev-install
+      - run: make test   # ← single step, Makefile handles everything
