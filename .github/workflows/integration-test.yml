@@ -186,7 +186,7 @@ jobs:
           .venv/bin/python examples/workspace_resources.py \
             --list \
             --workspace-id "$TFE_WORKSPACE_ID" \
-            --page-size 10 || 
+            --page-size 10
 
       - name: workspace.py
         run: .venv/bin/python examples/workspace.py --org "$TFE_ORG" --list 
