@@ -90,7 +90,7 @@ jobs:
         run: .venv/bin/python examples/notification_configuration.py  
 
       - name: oauth_client.py
-        run: .venv/bin/python examples/oauth_client.py || true
+        run: .venv/bin/python examples/oauth_client.py
 
       - name: oauth_token.py
         run: .venv/bin/python examples/oauth_token.py  || true
