@@ -46,6 +46,7 @@ jobs:
       TFE_ADDRESS: ${{ secrets.TFE_ADDRESS }}
       TFE_WORKSPACE_ID: ${{ secrets.TFE_WORKSPACE_ID }}
       TFE_WORKSPACE_NAME: ${{ secrets.TFE_WORKSPACE_NAME }}
+      TFE_TEAM_ID: ${{ secrets.TFE_TEAM_ID }}
       TFE_RUN_ID: ${{ secrets.TFE_RUN_ID }}
       TFE_APPLY_ID: ${{ secrets.TFE_APPLY_ID }}
       TFE_PLAN_ID: ${{ secrets.TFE_PLAN_ID }}
