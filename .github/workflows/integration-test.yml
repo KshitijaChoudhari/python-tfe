@@ -59,6 +59,8 @@ jobs:
       OAUTH_CLIENT_GITHUB_TOKEN: ${{ secrets.OAUTH_CLIENT_GITHUB_TOKEN }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
       TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+      TEST_MEMBER_EMAIL: ${{ secrets.TEST_MEMBER_EMAIL }}
+      TEAM_MEMBERSHIP_ID: ${{secretS.TEAM_MEBERSHIP_ID}}
 
     steps:
       - name: Checkout code
