@@ -28,7 +28,7 @@ from pytfe.models import (
 def main():
     """Demonstrate organization membership list functionality."""
 
-    organization_name = "aayush-test"
+    organization_name = os.environ["TFE_ORG"]
 
     # Initialize the client (reads TFE_TOKEN and TFE_ADDRESS from environment)
     try:
@@ -272,13 +272,13 @@ def main():
         from pytfe.models import OrganizationMembershipCreateOptions, Team
 
         # Replace with a valid email for your organization
-        new_member_email = "sivaselvan.i@hashicorp.com"
+        new_member_email = os.getenv("TEST_MEMBER_EMAIL")
 
         # Create membership with teams (uncomment to use)
         from pytfe.models import OrganizationAccess
 
         team = Team(
-            id="team-dx24FR9xQUuwNTHA",
+            id = os.environ["TFE_TEAM_ID"]
             organization_access=OrganizationAccess(read_workspaces=True),
         )  # Replace with actual team ID
         create_options = OrganizationMembershipCreateOptions(
