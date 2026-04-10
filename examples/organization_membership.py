@@ -13,6 +13,7 @@ Requirements:
 Usage:
     python examples/organization_membership.py <organization-name>
 """
+
 import os
 import sys
 
@@ -301,7 +302,9 @@ def main():
     try:
         from pytfe.errors import NotFound
 
-        membership_id = os.getenv("TFE_MEMBERSHIP_ID")  # Replace with actual membership ID
+        membership_id = os.getenv(
+            "TFE_MEMBERSHIP_ID"
+        )  # Replace with actual membership ID
         print(f"Attempting to delete membership: {membership_id}")
 
         client.organization_memberships.delete(membership_id)
