@@ -90,7 +90,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from pytfe import TFEClient
 from pytfe.models import RunTaskRequest
-from pytfe.resources.run_tasks_integration import (
+from pytfe.models.run_tasks_integration import (
     TaskResultCallbackOptions,
     TaskResultOutcome,
     TaskResultTag,

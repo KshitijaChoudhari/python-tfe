@@ -8,12 +8,14 @@ import pytest
 
 from pytfe.errors import TFEError
 from pytfe.models.run_task_request import RunTaskRequest
-from pytfe.resources.run_tasks_integration import (
-    RunTasksIntegration,
+from pytfe.models.run_tasks_integration import (
     TaskResultCallbackOptions,
     TaskResultOutcome,
-    TaskResultStatus,
     TaskResultTag,
+)
+from pytfe.models.task_result import TaskResultStatus
+from pytfe.resources.run_tasks_integration import (
+    RunTasksIntegration,
 )
 
 

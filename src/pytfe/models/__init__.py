@@ -296,6 +296,11 @@ from .task_result import (
     TaskResultStatus,
     TaskResultStatusTimestamps,
 )
+from .run_tasks_integration import (
+    TaskResultCallbackOptions,
+    TaskResultOutcome,
+    TaskResultTag,
+)
 from .task_stages import (
     Actions,
     Permissions,
@@ -599,6 +604,10 @@ __all__ = [
     "TaskResult",
     "TaskResultStatus",
     "TaskResultStatusTimestamps",
+    # Run tasks integration
+    "TaskResultCallbackOptions",
+    "TaskResultOutcome",
+    "TaskResultTag",
     # Task stages
     "Actions",
     "Permissions",
